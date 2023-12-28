@@ -16,7 +16,9 @@ pip install freezy
 ```
 
 # Speed formula
+
 $$ v = {{\Sigma d_n}\over{pf}} $$
+
 - $v$: Speed [cm/s]
 - ${\Sigma d_n}$: Sum of distance during 1 second.
 - $p$: Pixels for 1 cm.
