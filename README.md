@@ -10,7 +10,7 @@
 
 # How to use
 
-```console
+```
 pip install freezy
 ```
 
@@ -18,4 +18,5 @@ pip install freezy
 
 - Refer 'examples' directory.
 
-![Result](./examples/result_route_and_speed.png)
+![Result: Route and speed](./examples/result_route_and_speed.png)
+![Result: Speed and freezing](./examples/result_speed_and_freezing.png)
