@@ -1,4 +1,4 @@
-![PyPI - Version](https://img.shields.io/pypi/v/freezy)
+![PyPI - Version](https://img.shields.io/pypi/v/freezy?link=https%3A%2F%2Fpypi.org%2Fproject%2Ffreezy%2F)
 ![PyPI - Python Version](https://img.shields.io/pypi/pyversions/freezy)
 ![GitHub License](https://img.shields.io/github/license/minsmis/freezy)
 
