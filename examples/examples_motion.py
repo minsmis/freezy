@@ -20,9 +20,15 @@ route = np.array([x_nose, y_nose])
 """ Be sure to use the adequate 'fps' and 'pixel_for_cm' for your device. """
 speed = motion.compute_speed(route, fps=30, pixel_for_cm=30)
 
-# Display speed plot
-plt.plot(speed)
-plt.title('Result: examples_motion.py')
-plt.xlabel('Time (s)')
-plt.ylabel('Speed (cm/s)')
+# Display example plots
+fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
+ax1.scatter(route[0, 0:100], route[1, 0:100])
+ax1.plot(route[0, 0:100], route[1, 0:100], 'b')
+ax1.set_title('Example route')
+ax1.set_xlabel('X position')
+ax1.set_ylabel('Y position')
+ax2.plot(speed[0:100])
+ax2.set_title('Example speed')
+ax2.set_xlabel('Time (s)')
+ax2.set_ylabel('Speed (cm/s)')
 plt.show()
