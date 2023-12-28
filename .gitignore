@@ -188,5 +188,5 @@ cython_debug/
 
 # minsmis
 release_rules/
-freezy.iml
+*.iml
 setup.py
