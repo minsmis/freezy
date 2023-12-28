@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 
 # Designate path for DLC (DeepLabCut) coordinates.
 # path = 'PATH/OF/DLC/RESULT.csv'
-path = '~/IdeaProjects/freezy/examples/sample_dlc_data.csv'
+path = './sample_dlc_data.csv'
 
 # Read DLC coordinates
 """ This step should be applied flexibly to adequate for your own dataset."""
