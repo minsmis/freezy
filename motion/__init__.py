@@ -8,3 +8,8 @@ from .picker import euclidean_distance
 from .picker import binning_distance
 from .picker import speed_per_pixel
 from .picker import compute_speed
+
+# freeze.py
+from .freeze import compute_freezing_threshold
+from .freeze import detect_freezing
+from .freeze import compute_freezing_ratio
