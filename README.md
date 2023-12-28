@@ -10,4 +10,4 @@ pip install freezy
 # Examples
 - Refer 'examples' directory.
 
-![Result](./examples/result_examples_motion.png)  
+![Result](./examples/result_route_and_speed.png)
