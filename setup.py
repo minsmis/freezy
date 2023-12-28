@@ -7,7 +7,7 @@ long_description = (this_directory / "README.md").read_text()
 
 setup(
     name='freezy',
-    version='1.0.1',
+    version='1.1.1',
     description='Automatic speed calculation through DLC coordinates.',
     long_description=long_description,
     long_description_content_type='text/markdown',
@@ -16,7 +16,7 @@ setup(
     url='https://github.com/minsmis/freezy.git',
     install_requires=['numpy', 'matplotlib', 'pandas'],
     packages=find_packages(exclude=[]),
-    keywords=['deeplabcut', 'mouse', 'speed'],
+    keywords=['deeplabcut', 'mouse', 'speed', 'freezing'],
     python_requires='>=3.11',
     package_data={},
     zip_safe=False,
