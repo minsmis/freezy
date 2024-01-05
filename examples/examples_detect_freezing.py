@@ -16,9 +16,12 @@ x_nose, y_nose = list(map(float, dlc['nose'][1:])), list(map(float, dlc['nose.1'
 # Make 'route' with coordinates
 route = np.array([x_nose, y_nose])
 
+# Smooth route
+smoothed_route = motion.smooth_route(route, window_size=15)
+
 # Compute speed
 """ Be sure to use the adequate 'fps' and 'pixel_for_cm' for your device. """
-speed = motion.compute_speed(route, fps=30, pixel_for_cm=30)
+speed = motion.compute_speed(smoothed_route, fps=30, pixel_for_cm=30)
 
 # Detect freezing
 """ The parameter, freezing_threshold can be assigned manually or average speed during baseline 

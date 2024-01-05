@@ -16,18 +16,22 @@ x_nose, y_nose = list(map(float, dlc['nose'][1:])), list(map(float, dlc['nose.1'
 # Make 'route' with coordinates
 route = np.array([x_nose, y_nose])
 
+# Smooth route
+smoothed_route = motion.smooth_route(route, window_size=15)
+
 # Compute speed
 """ Be sure to use the adequate 'fps' and 'pixel_for_cm' for your device. """
-speed = motion.compute_speed(route, fps=30, pixel_for_cm=30)
+speed = motion.compute_speed(smoothed_route, fps=30, pixel_for_cm=30)
 
 # Display example plots
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))
-ax1.scatter(route[0, 0:100], route[1, 0:100])
-ax1.plot(route[0, 0:100], route[1, 0:100], 'b')
+ax1.plot(route[0, 100:200], route[1, 100:200], '-o', label='Original')
+ax1.plot(smoothed_route[0, 100:200], smoothed_route[1, 100:200], '-o', label='Smoothed')
 ax1.set_title('Example route')
 ax1.set_xlabel('X position')
 ax1.set_ylabel('Y position')
-ax2.plot(speed[0:100])
+ax1.legend()
+ax2.plot(speed[100:200])
 ax2.set_title('Example speed')
 ax2.set_xlabel('Time (s)')
 ax2.set_ylabel('Speed (cm/s)')
