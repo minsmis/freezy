@@ -20,8 +20,8 @@ route = np.array([x_nose, y_nose])
 smoothed_route = freezy.smooth_route(route, window_size=15)
 
 # Compute speed
-""" Be sure to use the adequate 'fps' and 'pixel_for_cm' for your device. """
-speed = freezy.compute_speed(smoothed_route, fps=30, pixel_for_cm=30)
+""" Be sure to use the adequate 'fps' and 'pixel_per_cm' for your device. """
+speed = freezy.compute_speed(smoothed_route, fps=30, pixel_per_cm=30)
 
 # Calculate freezing threshold
 """ This threshold is a average speed during the baseline. Care should be taken when applying this value 

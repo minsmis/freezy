@@ -20,8 +20,8 @@ route = np.array([x_nose, y_nose])
 smoothed_route = motion.smooth_route(route, window_size=15)
 
 # Compute speed
-""" Be sure to use the adequate 'fps' and 'pixel_for_cm' for your device. """
-speed = motion.compute_speed(smoothed_route, fps=30, pixel_for_cm=30)
+""" Be sure to use the adequate 'fps' and 'pixel_per_cm' for your device. """
+speed = motion.compute_speed(smoothed_route, fps=30, pixel_per_cm=30)
 
 # Display example plots
 fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(16, 8))

@@ -112,11 +112,11 @@ def binning_distance(distance, fps):
     return binned_distance
 
 
-def speed_per_pixel(binned_distance, fps, pixel_for_cm):
+def speed_per_pixel(binned_distance, fps, pixel_per_cm):
     # Parameter
     # binned_distance [ndarr, 1D]: Result of 'binning_distance'.
     # fps [int or float]: Frame per second of video.
-    # pixel_for_cm [int or float]: Pixels for 1 cm.
+    # pixel_per_cm [int or float]: Pixels for 1 cm.
 
     # Output
     speed_per_bin = []
@@ -125,22 +125,22 @@ def speed_per_pixel(binned_distance, fps, pixel_for_cm):
     for distance_bin in binned_distance:
         if len(distance_bin) == fps:
             sum_distance = np.sum(distance_bin)
-            speed = ((sum_distance / pixel_for_cm) / fps)
+            speed = ((sum_distance / pixel_per_cm) / fps)
             speed_per_bin.append(speed)
         if len(distance_bin) < fps:
             sum_distance = np.sum(distance_bin)
-            speed = ((sum_distance / pixel_for_cm) / len(distance_bin))
+            speed = ((sum_distance / pixel_per_cm) / len(distance_bin))
             speed_per_bin.append(speed)
         if len(distance_bin) > fps:
             raise Exception("The size of bin is exceeded fps. Check the 'binned_distance'.")
     return np.array(speed_per_bin)
 
 
-def compute_speed(route, fps=30, pixel_for_cm=30):
+def compute_speed(route, fps=30, pixel_per_cm=30):
     # Parameters
     # route [list or ndarr, 2D, [x, y]]: Route of movement.
     # fps [int or float, Default=30 fps]: Frame per second of video.
-    # pixel_for_cm [int, Default=30 pixels]: Pixels for 1 cm.
+    # pixel_per_cm [int, Default=30 pixels]: Pixels for 1 cm.
 
     # Define position
     x, y = route
@@ -154,6 +154,6 @@ def compute_speed(route, fps=30, pixel_for_cm=30):
     binned_distance = binning_distance(distance, int(fps))
 
     # Compute speed
-    speed_per_bin = speed_per_pixel(binned_distance, int(fps), pixel_for_cm)
+    speed_per_bin = speed_per_pixel(binned_distance, int(fps), pixel_per_cm)
 
     return speed_per_bin
