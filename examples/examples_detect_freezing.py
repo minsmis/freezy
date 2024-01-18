@@ -25,7 +25,7 @@ speed = motion.compute_speed(smoothed_route, fps=30, pixel_for_cm=30)
 
 # Detect freezing
 """ The parameter, freezing_threshold can be assigned manually or average speed during baseline 
-computed by 'motion.compute_freezing_threshold' function. Here, the example assigned manually. """
+computed by 'freezy.compute_freezing_threshold' function. Here, the example assigned manually. """
 freeze_or_not = motion.detect_freezing(speed, freezing_threshold=0.3)
 
 # Calculate freezing ratio for the protocol
