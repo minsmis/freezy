@@ -1,5 +1,5 @@
 # Import the module
-import motion
+import freezy
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -10,28 +10,33 @@ path = './sample_dlc_data.csv'
 
 # Read DLC coordinates
 """ This step should be applied flexibly to adequate for your own dataset."""
-dlc = motion.extract(path)
+dlc = freezy.extract(path)
 x_nose, y_nose = list(map(float, dlc['nose'][1:])), list(map(float, dlc['nose.1'][1:]))
 
 # Make 'route' with coordinates
 route = np.array([x_nose, y_nose])
 
 # Smooth route
-smoothed_route = motion.smooth_route(route, window_size=15)
+smoothed_route = freezy.smooth_route(route, window_size=15)
 
 # Compute speed
 """ Be sure to use the adequate 'fps' and 'pixel_for_cm' for your device. """
-speed = motion.compute_speed(smoothed_route, fps=30, pixel_for_cm=30)
+speed = freezy.compute_speed(smoothed_route, fps=30, pixel_for_cm=30)
+
+# Calculate freezing threshold
+""" This threshold is a average speed during the baseline. Care should be taken when applying this value 
+because real freezing threshold can be lower then averaged speed. """
+freezing_threshold = freezy.compute_freezing_threshold(speed, baseline_duration=120)
 
 # Detect freezing
 """ The parameter, freezing_threshold can be assigned manually or average speed during baseline 
 computed by 'freezy.compute_freezing_threshold' function. Here, the example assigned manually. """
-freeze_or_not = motion.detect_freezing(speed, freezing_threshold=0.3)
+freeze_or_not = freezy.detect_freezing(speed, freezing_threshold=0.3)
 
 # Calculate freezing ratio for the protocol
 """ Baseline (120 s) -> {Tone (30 s) -> ITI (30 s)} for 5 times. """
 protocol = [120, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30]
-freezing_ratio = motion.compute_freezing_ratio(freeze_or_not, protocol)
+freezing_ratio = freezy.compute_freezing_ratio(freeze_or_not, protocol)
 
 # Display result
 fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(16, 8))
