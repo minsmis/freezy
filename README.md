@@ -23,7 +23,7 @@ pip install freezy
 ```
 pip install freezy
 ```
-2. Run ui_main.py in ./GUI (**Freezy application will be deployed ASAP!**).
+2. Run ```ui_main.py``` in ./GUI (**Freezy application will be deployed ASAP!**).
 
 # Speed formula
 
