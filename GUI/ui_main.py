@@ -9,6 +9,7 @@ from PyQt6.QtWebEngineWidgets import *
 import plotly.express as px
 import plotly.graph_objects as go
 import numpy as np
+import pandas as pd
 
 import freezy
 
@@ -356,6 +357,12 @@ class MainWidget(QMainWindow):
         [display_freezing_ratio_table.setItem(i, 1, QTableWidgetItem(str(freezing_ratio)))
          for i, freezing_ratio in enumerate(self.freezing_ratio)]
 
+        display_freezing_ratio_save_button = QPushButton('Save')  # Buttons
+        display_freezing_ratio_save_button.clicked.connect(self.action_save_freezing_ratio)
+
+        display_freezing_ratio_cancel_button = QPushButton('Cancel')
+        display_freezing_ratio_cancel_button.clicked.connect(lambda: self.display_freezing_ratio_widget.close())
+
         # Layout
         display_freezing_ratio_path_layout = QHBoxLayout()  # Path layout
         display_freezing_ratio_path_layout.addWidget(display_freezing_ratio_path_path_label)
@@ -385,7 +392,11 @@ class MainWidget(QMainWindow):
         display_freezing_ratio_protocol_layout.addWidget(display_freezing_ratio_protocol_protocol_label)
         display_freezing_ratio_protocol_layout.addWidget(display_freezing_ratio_protocol_protocol_lineEdit)
 
-        display_freezing_ratio_layout = QVBoxLayout()  # Largest grid layout
+        display_freezing_ratio_buttons_layout = QHBoxLayout()  # Buttons layout
+        display_freezing_ratio_buttons_layout.addWidget(display_freezing_ratio_save_button)
+        display_freezing_ratio_buttons_layout.addWidget(display_freezing_ratio_cancel_button)
+
+        display_freezing_ratio_layout = QVBoxLayout()  # Largest layout
         display_freezing_ratio_layout.addWidget(display_freezing_ratio_path_label)
         display_freezing_ratio_layout.addLayout(display_freezing_ratio_path_layout)
         display_freezing_ratio_layout.addWidget(display_freezing_ratio_smoothing_parameter_report_label)
@@ -397,6 +408,7 @@ class MainWidget(QMainWindow):
         display_freezing_ratio_layout.addLayout(display_freezing_ratio_protocol_layout)
         display_freezing_ratio_layout.addWidget(display_freezing_ratio_result_label)
         display_freezing_ratio_layout.addWidget(display_freezing_ratio_table)
+        display_freezing_ratio_layout.addLayout(display_freezing_ratio_buttons_layout)
 
         # Set widget layout
         self.display_freezing_ratio_widget.setLayout(display_freezing_ratio_layout)
@@ -408,27 +420,6 @@ class MainWidget(QMainWindow):
         self.display_freezing_ratio_widget.show()
 
     # %% Button actions
-    def action_select_bodyparts(self):
-        # Update bodyparts
-        self.x_bodypart = self.select_bodypart_x_coordinates_comboBox.currentText()
-        self.y_bodypart = self.select_bodypart_x_coordinates_comboBox.currentText()
-
-        # Release event loop
-        self.exit_event_loop()
-
-        # Close widget
-        self.close_widget(self.select_bodyparts_widget)
-
-    def action_update_freezing_threshold(self):
-        # Update freezing threshold
-        self.freezing_threshold = float(self.select_freezing_threshold_editField.text())
-
-        # Release event loop
-        self.exit_event_loop()
-
-        # Close widget
-        self.close_widget(self.select_freezing_threshold_widget)
-
     def action_open_file(self):
         return
 
@@ -442,6 +433,17 @@ class MainWidget(QMainWindow):
         # Display selected paths in table widget
         self.selected_path_table.setRowCount(len(self.selected_paths))
         [self.selected_path_table.setItem(i, 0, QTableWidgetItem(path)) for i, path in enumerate(self.selected_paths)]
+
+    def action_select_bodyparts(self):
+        # Update bodyparts
+        self.x_bodypart = self.select_bodypart_x_coordinates_comboBox.currentText()
+        self.y_bodypart = self.select_bodypart_x_coordinates_comboBox.currentText()
+
+        # Release event loop
+        self.exit_event_loop()
+
+        # Close widget
+        self.close_widget(self.select_bodyparts_widget)
 
     def action_update_windowSize(self):
         # Update changed text
@@ -477,6 +479,16 @@ class MainWidget(QMainWindow):
             self.protocol = eval(self.setup_protocol_lineEdit.text())
         except:
             self.protocol = []  # Reset value
+
+    def action_update_freezing_threshold(self):
+        # Update freezing threshold
+        self.freezing_threshold = float(self.select_freezing_threshold_editField.text())
+
+        # Release event loop
+        self.exit_event_loop()
+
+        # Close widget
+        self.close_widget(self.select_freezing_threshold_widget)
 
     def action_run_analysis(self):
         # Check path
@@ -521,6 +533,26 @@ class MainWidget(QMainWindow):
         self.plot_speed()
         self.plot_freezing_ratio()
         self.display_freezing_ratio()
+
+    def action_save_freezing_ratio(self):
+        # Make dataframe
+        setup_result = pd.DataFrame({
+            'Path': self.selected_paths[0],
+            'Window Size': self.windowSize,
+            'Order': self.order,
+            'FPS': self.fps,
+            'Picel/cm': self.pixelPerCm
+        }, index=[0])
+        data_result = pd.DataFrame({
+            'Protocol (s)': self.protocol,
+            'Freezing Ratio (%)': self.freezing_ratio
+        })
+
+        # Save file
+        save_path = QFileDialog.getSaveFileName(self, 'Save File', os.getcwd(), filter='Excel Files (*.xlsx)')
+        with pd.ExcelWriter(save_path[0]) as writer:
+            data_result.to_excel(writer, sheet_name='Data')
+            setup_result.to_excel(writer, sheet_name='Setup')
 
     # %% Application management functions
     def exec_event_loop(self):
