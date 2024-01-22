@@ -11,9 +11,19 @@
 
 # How to use
 
+### For python script users: 
+1. Install freezy package
 ```
 pip install freezy
 ```
+2. Refer example codes in ./examples.
+
+### For GUI users:
+1. Install freezy package.
+```
+pip install freezy
+```
+2. Run ui_main.py in ./GUI (**Freezy application will be deployed ASAP!**).
 
 # Speed formula
 
