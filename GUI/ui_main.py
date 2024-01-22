@@ -21,9 +21,14 @@ class MainWidget(QMainWindow):
         self.init_thread()  # init thread
         self.init_main_ui()  # init main ui
 
+    # %% inits
     def init_parameters(self):
         # Selected paths
         self.selected_paths = []
+
+        # Bodyparts to extract
+        self.x_bodypart = 'none'
+        self.y_bodypart = 'none'
 
         # Default parameters
         self.windowSize = 15
@@ -196,8 +201,60 @@ class MainWidget(QMainWindow):
         self.resize(1280, 960)
         self.show()
 
+    # %% Select parameters
+    def select_bodyparts(self, dlc_coordinates):
+        # Parameters
+        # dlc_coordinates [DataFrame]: Return of 'extract_data'.
+
+        # Select bodyparts widget
+        self.select_bodyparts_widget = QWidget()
+
+        # Widgets
+        select_bodypart_x_coordinates_label = QLabel('Select X bodypart.')  # Labels
+        select_bodypart_y_coordinates_label = QLabel('Select Y bodypart.')
+
+        self.select_bodypart_x_coordinates_comboBox = QComboBox(self)  # ComboBox
+        [self.select_bodypart_x_coordinates_comboBox.addItem(x_bodypart_item) for x_bodypart_item in dlc_coordinates]
+        self.select_bodypart_y_coordinates_comboBox = QComboBox(self)
+        [self.select_bodypart_y_coordinates_comboBox.addItem(y_bodypart_item) for y_bodypart_item in dlc_coordinates]
+
+        select_bodypart_button = QPushButton('Done')  # Buttons
+        select_bodypart_button.clicked.connect(self.action_select_bodyparts)
+
+        # Layout
+        select_bodypart_x_layout = QVBoxLayout()
+        select_bodypart_x_layout.addWidget(select_bodypart_x_coordinates_label)
+        select_bodypart_x_layout.addWidget(self.select_bodypart_x_coordinates_comboBox)
+
+        select_bodypart_y_layout = QVBoxLayout()
+        select_bodypart_y_layout.addWidget(select_bodypart_y_coordinates_label)
+        select_bodypart_y_layout.addWidget(self.select_bodypart_y_coordinates_comboBox)
+
+        sub_select_bodyparts_layout = QHBoxLayout()
+        sub_select_bodyparts_layout.addLayout(select_bodypart_x_layout)
+        sub_select_bodyparts_layout.addLayout(select_bodypart_y_layout)
+
+        select_bodyparts_layout = QVBoxLayout()
+        select_bodyparts_layout.addLayout(sub_select_bodyparts_layout)
+        select_bodyparts_layout.addWidget(select_bodypart_button)
+
+        # Set widget layout
+        self.select_bodyparts_widget.setLayout(select_bodyparts_layout)
+
+        # Show widget
+        self.select_bodyparts_widget.setWindowTitle('Select Bodyparts')
+        self.select_bodyparts_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.select_bodyparts_widget.resize(400, 100)
+        self.select_bodyparts_widget.show()
+
+        # Start event loop
+        self.exec_event_loop()
+
     def select_freezing_threshold(self, speed_distribution):
-        # Select freezing threshold dialog
+        # Parameters
+        # speed_distribution [ndarr, 1D]: Return of the 'compute_speed_distribution'.
+
+        # Select freezing threshold widget
         self.select_freezing_threshold_widget = QWidget()
 
         # Figure
@@ -231,10 +288,10 @@ class MainWidget(QMainWindow):
         select_freezing_threshold_layout.addLayout(select_freezing_threshold_subLayout)
         select_freezing_threshold_layout.addWidget(select_freezing_threshold_button)
 
-        # Set dialog layout
+        # Set widget layout
         self.select_freezing_threshold_widget.setLayout(select_freezing_threshold_layout)
 
-        # Show dialog
+        # Show widget
         self.select_freezing_threshold_widget.setWindowTitle('Select Freezing Threshold')
         self.select_freezing_threshold_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
         self.select_freezing_threshold_widget.resize(500, 600)
@@ -243,24 +300,27 @@ class MainWidget(QMainWindow):
         # Start event loop
         self.exec_event_loop()  # Temporary pause until freezing threshold updated
 
-    def exec_event_loop(self):
-        self.event_loop.exec()
+    # %% Button actions
+    def action_select_bodyparts(self):
+        # Update bodyparts
+        self.x_bodypart = self.select_bodypart_x_coordinates_comboBox.currentText()
+        self.y_bodypart = self.select_bodypart_x_coordinates_comboBox.currentText()
 
-    def exit_event_loop(self):
-        self.event_loop.exit()
+        # Release event loop
+        self.exit_event_loop()
 
-    def close_dialog(self, dialog):
-        dialog.close()
+        # Close widget
+        self.close_widget(self.select_bodyparts_widget)
 
     def action_update_freezing_threshold(self):
         # Update freezing threshold
         self.freezing_threshold = float(self.select_freezing_threshold_editField.text())
 
-        # Exit event loop
+        # Release event loop
         self.exit_event_loop()
 
-        # Close dialog
-        self.close_dialog(self.select_freezing_threshold_widget)
+        # Close widget
+        self.close_widget(self.select_freezing_threshold_widget)
 
     def action_open_file(self):
         return
@@ -324,11 +384,15 @@ class MainWidget(QMainWindow):
 
         # Run analysis
         # Read DLC coordinates
-        dlc_coordinates = freezy.extract(self.selected_paths[0])
-        x_nose, y_nose = list(map(float, dlc_coordinates['nose'][1:])), list(map(float, dlc_coordinates['nose.1'][1:]))
+        ''' Now this application performs analysis for first selected data. '''
+        dlc_coordinates = freezy.extract_data(self.selected_paths[0])
+
+        # Select bodyparts
+        self.select_bodyparts(freezy.read_bodyparts(dlc_coordinates))
+        coordinates_x, coordinates_y = freezy.extract_coordinates(dlc_coordinates, self.x_bodypart, self.y_bodypart)
 
         # Make 'route' with coordinates
-        self.route = np.array([x_nose, y_nose])
+        self.route = np.array([coordinates_x, coordinates_y])
 
         # Smooth route
         self.smoothed_route = freezy.smooth_route(self.route, window_size=self.windowSize)
@@ -350,6 +414,17 @@ class MainWidget(QMainWindow):
         self.plot_speed()
         self.plot_freezing_ratio()
 
+    # %% Application management functions
+    def exec_event_loop(self):
+        self.event_loop.exec()
+
+    def exit_event_loop(self):
+        self.event_loop.exit()
+
+    def close_widget(self, widget):
+        widget.close()
+
+    # %% Application utility functions
     def plot_route(self):
         fig = go.Figure()
         fig.add_trace(go.Scatter(x=self.route[0], y=self.route[1], opacity=0.7, mode='lines+markers', name='Route'))
@@ -377,6 +452,7 @@ class MainWidget(QMainWindow):
         self.freezing_ratio_plot_webEngine.setHtml(fig.to_html(include_plotlyjs='cdn'))
 
 
+# %% main executor
 if __name__ == '__main__':
     app = QApplication(sys.argv)
 
