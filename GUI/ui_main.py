@@ -67,7 +67,7 @@ class MainWidget(QMainWindow):
         setup_compute_speed_pixelPerCm_label = QLabel('Pixel/cm:')
 
         setup_protocol_label = QLabel('4. Setup protocol')
-        setup_protocol_protocol_label = QLabel('Protocol:')
+        setup_protocol_protocol_label = QLabel('Protocol (s):')
 
         self.setup_smoothing_windowSize_lineEdit = QLineEdit()  # LineEdits
         self.setup_smoothing_windowSize_lineEdit.setPlaceholderText('window size')
@@ -351,7 +351,7 @@ class MainWidget(QMainWindow):
         display_freezing_ratio_table.setColumnCount(2)
         display_freezing_ratio_table.setRowCount(len(self.protocol))
         display_freezing_ratio_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
-        display_freezing_ratio_table.setHorizontalHeaderLabels(['Protocol', 'Freezing Ratio (%)'])
+        display_freezing_ratio_table.setHorizontalHeaderLabels(['Protocol (s)', 'Freezing Ratio (%)'])
         [display_freezing_ratio_table.setItem(i, 0, QTableWidgetItem(str(duration)))
          for i, duration in enumerate(self.protocol)]
         [display_freezing_ratio_table.setItem(i, 1, QTableWidgetItem(str(freezing_ratio)))
