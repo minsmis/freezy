@@ -190,6 +190,10 @@ class MainWidget(QMainWindow):
         menu_bar = self.menuBar()
         menu_bar.setNativeMenuBar(False)
         self.file_menu = menu_bar.addMenu('&File')
+        self.edit_menu = menu_bar.addMenu('&Edit')
+        self.analysis_menu = menu_bar.addMenu('&Analysis')
+        self.model_menu = menu_bar.addMenu('&Model')
+        self.help_menu = menu_bar.addMenu('&Help')
 
         # Status bar
         self.statusBar()
