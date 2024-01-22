@@ -31,3 +31,20 @@ def read_bodyparts(data):
     bodyparts = list(head.columns[1:])  # 'bodyparts' in index=0
 
     return bodyparts
+
+
+def extract_coordinates(data, x_bodypart, y_bodypart):
+    # Parameters
+    # data [DataFrame]: Return of 'extract_data'.
+    # x_bodypart, y_bodypart [str]: Bodypart name to extract coordinates.
+    # Return
+    # x_coordinates, y_coordinates [list]: Coordinates for each bodypart.
+
+    # Return
+    x_coordinates, y_coordinates = [], []
+
+    # Extract coordinates from each bodypart
+    x_coordinates, y_coordinates = (list(map(float, data[x_bodypart][1:])),
+                                    list(map(float, data[y_bodypart][1:])))
+
+    return x_coordinates, y_coordinates

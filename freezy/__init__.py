@@ -1,6 +1,7 @@
 # extractor.py
 from .extractor import extract_data
 from .extractor import read_bodyparts
+from .extractor import extract_coordinates
 
 # picker.py
 from .picker import savitzky_golay
