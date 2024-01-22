@@ -25,6 +25,18 @@ def compute_freezing_threshold(speed, baseline_duration):
     return threshold
 
 
+def compute_speed_distribution(speed):
+    # Parameter
+    # speed [ndarr, 1D]: Result of 'compute speed'.
+    # Return
+    # speed_distribution [ndarr, 1D]: Sorted speed. Highest to lowest speed.
+
+    # Sort
+    speed_distribution = np.sort(speed, kind='mergesort')[::-1]  # Highest to lowest
+
+    return speed_distribution
+
+
 def detect_freezing(speed, freezing_threshold):
     # Parameter
     # speed [ndarr, 1D]: Result of 'compute_speed'.
