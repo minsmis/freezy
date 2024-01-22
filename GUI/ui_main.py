@@ -601,7 +601,7 @@ class MainWidget(QMainWindow):
         fig = go.Figure()
         fig.add_trace(go.Scatter(y=self.freezing_ratio, mode='lines+markers'))
         fig.update_xaxes(title='Protocol')
-        fig.update_yaxes(title='Freezing (%)', range=[0, 100])
+        fig.update_yaxes(title='Freezing (%)', range=[-5, 110], dtick=25)
         fig.update_layout(margin=dict(l=20, r=20, t=20, b=20))
         self.freezing_ratio_plot_webEngine.setHtml(fig.to_html(include_plotlyjs='cdn'))
 
