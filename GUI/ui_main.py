@@ -103,7 +103,7 @@ class MainWidget(QMainWindow):
         self.run_analysis_button = QPushButton('Run Analysis')
         self.run_analysis_button.clicked.connect(self.action_run_analysis)
 
-        self.selected_path_table = QTableWidget()  # Tables
+        self.selected_path_table = QTableWidget(self)  # Tables
         self.selected_path_table.setColumnCount(1)
         self.selected_path_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
         self.selected_path_table.setHorizontalHeaderLabels(['Selected paths'])
@@ -147,17 +147,17 @@ class MainWidget(QMainWindow):
         plot_layout.addWidget(self.freezing_ratio_plot_webEngine)
 
         # Frame
-        path_frame = QFrame()
+        path_frame = QFrame(self)
         path_frame.setFrameShape(QFrame.Shape.StyledPanel)
         path_frame.setFrameShadow(QFrame.Shadow.Sunken)
         path_frame.setLayout(path_layout)
 
-        analysis_setup_frame = QFrame()
+        analysis_setup_frame = QFrame(self)
         analysis_setup_frame.setFrameShape(QFrame.Shape.StyledPanel)
         analysis_setup_frame.setFrameShadow(QFrame.Shadow.Sunken)
         analysis_setup_frame.setLayout(analysis_setup_layout)
 
-        plot_frame = QFrame()
+        plot_frame = QFrame(self)
         plot_frame.setFrameShape(QFrame.Shape.StyledPanel)
         plot_frame.setFrameShadow(QFrame.Shadow.Sunken)
         plot_frame.setLayout(plot_layout)
@@ -175,7 +175,7 @@ class MainWidget(QMainWindow):
         vertical_splitter.setStretchFactor(1, 10)
 
         # Main layout
-        main_layout = QGridLayout()
+        main_layout = QGridLayout(self)
         main_layout.addWidget(vertical_splitter)
 
         # Main Window widget
@@ -201,7 +201,7 @@ class MainWidget(QMainWindow):
         self.resize(1280, 960)
         self.show()
 
-    # %% Select parameters
+    # %% Select parameters widgets
     def select_bodyparts(self, dlc_coordinates):
         # Parameters
         # dlc_coordinates [DataFrame]: Return of 'extract_data'.
@@ -299,6 +299,113 @@ class MainWidget(QMainWindow):
 
         # Start event loop
         self.exec_event_loop()  # Temporary pause until freezing threshold updated
+
+    # %% Displaying widgets
+    def display_freezing_ratio(self):
+        # Display freezing ratio widget
+        self.display_freezing_ratio_widget = QWidget()
+
+        # Widgets
+        display_freezing_ratio_path_label = QLabel('1. Path')  # Labels
+        display_freezing_ratio_path_path_label = QLabel('Path:')
+
+        display_freezing_ratio_smoothing_parameter_report_label = QLabel('2. Smoothing Parameters')
+        display_freezing_ratio_smoothing_parameter_windowSize_label = QLabel('Window Size:')
+        display_freezing_ratio_smoothing_parameter_order_label = QLabel('Order:')
+
+        display_freezing_ratio_compute_speed_parameter_report_label = QLabel('3. Compute speed parameters')
+        display_freezing_ratio_compute_speed_parameter_fps_label = QLabel('FPS:')
+        display_freezing_ratio_compute_speed_parameter_pixelPerCm_label = QLabel('Pixel/cm:')
+
+        display_freezing_ratio_protocol_label = QLabel('4. Protocol')
+        display_freezing_ratio_protocol_protocol_label = QLabel('Protocol:')
+
+        display_freezing_ratio_result_label = QLabel('Results')
+
+        display_freezing_ratio_path_lineEdit = QLineEdit()  # LineEdits
+        display_freezing_ratio_path_lineEdit.setText(str(self.selected_paths[0]))
+        display_freezing_ratio_path_lineEdit.setReadOnly(True)
+
+        display_freezing_ratio_smoothing_parameter_windowSize_lineEdit = QLineEdit()
+        display_freezing_ratio_smoothing_parameter_windowSize_lineEdit.setText(str(self.windowSize))
+        display_freezing_ratio_smoothing_parameter_windowSize_lineEdit.setReadOnly(True)
+
+        display_freezing_ratio_smoothing_parameter_order_lineEdit = QLineEdit()
+        display_freezing_ratio_smoothing_parameter_order_lineEdit.setText(str(self.order))
+        display_freezing_ratio_smoothing_parameter_order_lineEdit.setReadOnly(True)
+
+        display_freezing_ratio_compute_speed_parameter_fps_lineEdit = QLineEdit()
+        display_freezing_ratio_compute_speed_parameter_fps_lineEdit.setText(str(self.fps))
+        display_freezing_ratio_compute_speed_parameter_fps_lineEdit.setReadOnly(True)
+
+        display_freezing_ratio_compute_speed_parameter_pixelPerCm_lineEdit = QLineEdit()
+        display_freezing_ratio_compute_speed_parameter_pixelPerCm_lineEdit.setText(str(self.pixelPerCm))
+        display_freezing_ratio_compute_speed_parameter_pixelPerCm_lineEdit.setReadOnly(True)
+
+        display_freezing_ratio_protocol_protocol_lineEdit = QLineEdit()
+        display_freezing_ratio_protocol_protocol_lineEdit.setText(str(self.protocol))
+        display_freezing_ratio_protocol_protocol_lineEdit.setReadOnly(True)
+
+        display_freezing_ratio_table = QTableWidget(self)  # Tables
+        display_freezing_ratio_table.setColumnCount(2)
+        display_freezing_ratio_table.setRowCount(len(self.protocol))
+        display_freezing_ratio_table.horizontalHeader().setSectionResizeMode(QHeaderView.ResizeMode.Stretch)
+        display_freezing_ratio_table.setHorizontalHeaderLabels(['Protocol', 'Freezing Ratio (%)'])
+        [display_freezing_ratio_table.setItem(i, 0, QTableWidgetItem(str(duration)))
+         for i, duration in enumerate(self.protocol)]
+        [display_freezing_ratio_table.setItem(i, 1, QTableWidgetItem(str(freezing_ratio)))
+         for i, freezing_ratio in enumerate(self.freezing_ratio)]
+
+        # Layout
+        display_freezing_ratio_path_layout = QHBoxLayout()  # Path layout
+        display_freezing_ratio_path_layout.addWidget(display_freezing_ratio_path_path_label)
+        display_freezing_ratio_path_layout.addWidget(display_freezing_ratio_path_lineEdit)
+
+        display_freezing_ratio_smoothing_parameter_layout = QHBoxLayout()  # Smoothing parameter layout
+        display_freezing_ratio_smoothing_parameter_layout.addWidget(
+            display_freezing_ratio_smoothing_parameter_windowSize_label)
+        display_freezing_ratio_smoothing_parameter_layout.addWidget(
+            display_freezing_ratio_smoothing_parameter_windowSize_lineEdit)
+        display_freezing_ratio_smoothing_parameter_layout.addWidget(
+            display_freezing_ratio_smoothing_parameter_order_label)
+        display_freezing_ratio_smoothing_parameter_layout.addWidget(
+            display_freezing_ratio_smoothing_parameter_order_lineEdit)
+
+        display_freezing_ratio_compute_speed_layout = QHBoxLayout()  # Compute speed layout
+        display_freezing_ratio_compute_speed_layout.addWidget(
+            display_freezing_ratio_compute_speed_parameter_fps_label)
+        display_freezing_ratio_compute_speed_layout.addWidget(
+            display_freezing_ratio_compute_speed_parameter_fps_lineEdit)
+        display_freezing_ratio_compute_speed_layout.addWidget(
+            display_freezing_ratio_compute_speed_parameter_pixelPerCm_label)
+        display_freezing_ratio_compute_speed_layout.addWidget(
+            display_freezing_ratio_compute_speed_parameter_pixelPerCm_lineEdit)
+
+        display_freezing_ratio_protocol_layout = QHBoxLayout()  # Protocol layout
+        display_freezing_ratio_protocol_layout.addWidget(display_freezing_ratio_protocol_protocol_label)
+        display_freezing_ratio_protocol_layout.addWidget(display_freezing_ratio_protocol_protocol_lineEdit)
+
+        display_freezing_ratio_layout = QVBoxLayout()  # Largest grid layout
+        display_freezing_ratio_layout.addWidget(display_freezing_ratio_path_label)
+        display_freezing_ratio_layout.addLayout(display_freezing_ratio_path_layout)
+        display_freezing_ratio_layout.addWidget(display_freezing_ratio_smoothing_parameter_report_label)
+        display_freezing_ratio_layout.addLayout(display_freezing_ratio_smoothing_parameter_layout)
+        display_freezing_ratio_layout.addWidget(display_freezing_ratio_compute_speed_parameter_report_label)
+        display_freezing_ratio_layout.addLayout(display_freezing_ratio_compute_speed_layout)
+        display_freezing_ratio_layout.addLayout(display_freezing_ratio_compute_speed_layout)
+        display_freezing_ratio_layout.addWidget(display_freezing_ratio_protocol_label)
+        display_freezing_ratio_layout.addLayout(display_freezing_ratio_protocol_layout)
+        display_freezing_ratio_layout.addWidget(display_freezing_ratio_result_label)
+        display_freezing_ratio_layout.addWidget(display_freezing_ratio_table)
+
+        # Set widget layout
+        self.display_freezing_ratio_widget.setLayout(display_freezing_ratio_layout)
+
+        # Show widget
+        self.display_freezing_ratio_widget.setWindowTitle('Result Report: Freezing Ratio')
+        self.display_freezing_ratio_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.display_freezing_ratio_widget.resize(400, 700)
+        self.display_freezing_ratio_widget.show()
 
     # %% Button actions
     def action_select_bodyparts(self):
@@ -413,6 +520,7 @@ class MainWidget(QMainWindow):
         # Display results
         self.plot_speed()
         self.plot_freezing_ratio()
+        self.display_freezing_ratio()
 
     # %% Application management functions
     def exec_event_loop(self):
