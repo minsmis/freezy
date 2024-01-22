@@ -1,5 +1,5 @@
 # extractor.py
-from .extractor import extract
+from .extractor import extract_data
 
 # picker.py
 from .picker import savitzky_golay
