@@ -12,9 +12,9 @@ def extract_data(path):
 
     # Extract file
     if extension == '.xlsx':
-        data = pd.read_excel(path)
+        data = pd.read_excel(path, skiprows=1)
     if extension == '.csv':
-        data = pd.read_csv(path)
+        data = pd.read_csv(path, skiprows=1)  # skiprows=1; To skip debris row in the dlc results
     return data
 
 
