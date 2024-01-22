@@ -538,6 +538,8 @@ class MainWidget(QMainWindow):
         # Make dataframe
         setup_result = pd.DataFrame({
             'Path': self.selected_paths[0],
+            'Bodypart (X)': self.x_bodypart,
+            'Bodypart (Y)': self.y_bodypart,
             'Window Size': self.windowSize,
             'Order': self.order,
             'FPS': self.fps,
@@ -547,12 +549,23 @@ class MainWidget(QMainWindow):
             'Protocol (s)': self.protocol,
             'Freezing Ratio (%)': self.freezing_ratio
         })
+        speed_result = pd.DataFrame({
+            'Speed (cm/s)': self.speed
+        })
+        route_result = pd.DataFrame({
+            'Route (X)': self.route[0],
+            'Route (Y)': self.route[1],
+            'Smoothed Route (X)': self.smoothed_route[0],
+            'Smoothed Route (Y)': self.smoothed_route[1]
+        })
 
         # Save file
         save_path = QFileDialog.getSaveFileName(self, 'Save File', os.path.dirname(self.selected_paths[0]),
                                                 filter='Excel Files (*.xlsx)')
         with pd.ExcelWriter(save_path[0]) as writer:
             data_result.to_excel(writer, sheet_name='Data')
+            speed_result.to_excel(writer, sheet_name='Speed')
+            route_result.to_excel(writer, sheet_name='Route')
             setup_result.to_excel(writer, sheet_name='Setup')
 
     # %% Application management functions
