@@ -10,7 +10,7 @@ path = './sample_dlc_data.csv'
 
 # Read DLC coordinates
 """ This step should be applied flexibly to adequate for your own dataset."""
-dlc = freezy.extract(path)
+dlc = freezy.extract_data(path)
 x_nose, y_nose = list(map(float, dlc['nose'][1:])), list(map(float, dlc['nose.1'][1:]))
 
 # Make 'route' with coordinates
