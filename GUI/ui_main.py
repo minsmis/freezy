@@ -549,7 +549,8 @@ class MainWidget(QMainWindow):
         })
 
         # Save file
-        save_path = QFileDialog.getSaveFileName(self, 'Save File', os.getcwd(), filter='Excel Files (*.xlsx)')
+        save_path = QFileDialog.getSaveFileName(self, 'Save File', os.path.dirname(self.selected_paths[0]),
+                                                filter='Excel Files (*.xlsx)')
         with pd.ExcelWriter(save_path[0]) as writer:
             data_result.to_excel(writer, sheet_name='Data')
             setup_result.to_excel(writer, sheet_name='Setup')
@@ -587,7 +588,7 @@ class MainWidget(QMainWindow):
         fig = go.Figure()
         fig.add_trace(go.Scatter(y=self.freezing_ratio, mode='lines+markers'))
         fig.update_xaxes(title='Protocol')
-        fig.update_yaxes(title='Freezing (%)')
+        fig.update_yaxes(title='Freezing (%)', range=[0, 100])
         fig.update_layout(margin=dict(l=20, r=20, t=20, b=20))
         self.freezing_ratio_plot_webEngine.setHtml(fig.to_html(include_plotlyjs='cdn'))
 
