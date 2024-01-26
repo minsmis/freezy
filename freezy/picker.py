@@ -97,8 +97,8 @@ def euclidean_distance(pos1, pos2):
     x2, y2 = pos2
 
     # Calculate Euclidean distance
-    E_distance = np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
-    return E_distance
+    Eu_distance = np.sqrt((x1 - x2) ** 2 + (y1 - y2) ** 2)
+    return Eu_distance
 
 
 def binning_distance(distance, fps):
@@ -123,13 +123,9 @@ def speed_per_pixel(binned_distance, fps, pixel_per_cm):
 
     # Compute speed per bin by pixels
     for distance_bin in binned_distance:
-        if len(distance_bin) == fps:
+        if len(distance_bin) <= fps:
             sum_distance = np.sum(distance_bin)
-            speed = ((sum_distance / pixel_per_cm) / fps)
-            speed_per_bin.append(speed)
-        if len(distance_bin) < fps:
-            sum_distance = np.sum(distance_bin)
-            speed = ((sum_distance / pixel_per_cm) / len(distance_bin))
+            speed = (sum_distance / pixel_per_cm)
             speed_per_bin.append(speed)
         if len(distance_bin) > fps:
             raise Exception("The size of bin is exceeded fps. Check the 'binned_distance'.")
