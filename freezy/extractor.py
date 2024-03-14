@@ -1,5 +1,6 @@
 import os
 
+import numpy as np
 import pandas as pd
 
 
@@ -48,3 +49,7 @@ def extract_coordinates(data, x_bodypart, y_bodypart):
                                     list(map(float, data[y_bodypart][1:])))
 
     return x_coordinates, y_coordinates
+
+
+def make_route(x_coordinates, y_coordinates):
+    return np.array([x_coordinates, y_coordinates])

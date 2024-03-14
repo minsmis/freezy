@@ -1,30 +1,6 @@
 import numpy as np
 
 
-def compute_freezing_threshold(speed, baseline_duration):
-    # Parameter
-    # speed [ndarr, 1D]: Result of 'compute_speed'.
-    # baseline_duration [int or list or ndarr, 1 or 2 elements, in second]: Duration of baseline.
-    # Return
-    # threshold [int or float, in second]: An average speed to use as freezing threshold.
-
-    # Define baseline
-    baseline = []
-    if np.size(baseline_duration) == 1:
-        if isinstance(baseline_duration, list or np.ndarray):
-            # This is for the baseline duration is given as like this form, [120].
-            baseline_duration = baseline_duration[0]
-        baseline = speed[0:baseline_duration]
-    if np.size(baseline_duration) == 2:
-        baseline = speed[int(baseline_duration[0]):int(baseline_duration[-1])]
-    if np.size(baseline_duration) > 2:
-        raise Exception("Check baseline duration, Over the expected length 1~2.")
-
-    # Compute average speed during baseline
-    threshold = np.average(baseline)
-    return threshold
-
-
 def compute_speed_distribution(speed):
     # Parameter
     # speed [ndarr, 1D]: Result of 'compute speed'.
@@ -35,6 +11,25 @@ def compute_speed_distribution(speed):
     speed_distribution = np.sort(speed, kind='mergesort')[::-1]  # Highest to lowest
 
     return speed_distribution
+
+
+def estimate_freezing_threshold(speed_distribution, detection_threshold=0.05):
+    # Parameter
+    # speed_distribution [ndarr, 1D]: Return of compute_speed_distribution.
+    # detection_threshold [float, 0 <= detection_threshold <= 1]: Detection threshold to find freezing threshold from the top.
+    # Return
+    # freezing_threshold [float]: Estimated freezing threshold.
+
+    # Reset variables
+    freezing_threshold = 0
+
+    # Find threshold
+    max_speed = np.max(speed_distribution)
+    min_speed = np.min(speed_distribution)
+    speed_range = max_speed - min_speed
+    freezing_threshold = speed_range * detection_threshold
+
+    return freezing_threshold
 
 
 def detect_freezing(speed, freezing_threshold):
