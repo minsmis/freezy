@@ -12,6 +12,8 @@ import numpy as np
 import pandas as pd
 
 import freezy
+import ui_select_bodyparts
+import ui_select_freezing_threshold
 
 
 class MainWidget(QMainWindow):
@@ -203,185 +205,17 @@ class MainWidget(QMainWindow):
 
         # Show main widget
         self.setWindowTitle('Freezy: Analyzing fear behavior')
-        self.resize(720, 860)
+        self.resize(1024, 860)
         self.show()
 
-    # %% Select parameters widgets
-    def select_bodyparts(self, dlc_coordinates):
-        # Parameters
-        # dlc_coordinates [DataFrame]: Return of 'extract_data'.
-
-        # Select bodyparts widget
-        self.select_bodyparts_widget = QWidget()
-
-        # Widgets
-        select_bodypart_x_coordinates_label = QLabel('Select X bodypart.')  # Labels
-        select_bodypart_y_coordinates_label = QLabel('Select Y bodypart.')
-
-        self.select_bodypart_x_coordinates_comboBox = QComboBox(self)  # ComboBox
-        [self.select_bodypart_x_coordinates_comboBox.addItem(x_bodypart_item) for x_bodypart_item in dlc_coordinates]
-        self.select_bodypart_y_coordinates_comboBox = QComboBox(self)
-        [self.select_bodypart_y_coordinates_comboBox.addItem(y_bodypart_item) for y_bodypart_item in dlc_coordinates]
-
-        select_bodypart_button = QPushButton('Done')  # Buttons
-        select_bodypart_button.clicked.connect(self.action_select_bodyparts)
-
-        # Layout
-        select_bodypart_x_layout = QVBoxLayout()
-        select_bodypart_x_layout.addWidget(select_bodypart_x_coordinates_label)
-        select_bodypart_x_layout.addWidget(self.select_bodypart_x_coordinates_comboBox)
-
-        select_bodypart_y_layout = QVBoxLayout()
-        select_bodypart_y_layout.addWidget(select_bodypart_y_coordinates_label)
-        select_bodypart_y_layout.addWidget(self.select_bodypart_y_coordinates_comboBox)
-
-        sub_select_bodyparts_layout = QHBoxLayout()
-        sub_select_bodyparts_layout.addLayout(select_bodypart_x_layout)
-        sub_select_bodyparts_layout.addLayout(select_bodypart_y_layout)
-
-        select_bodyparts_layout = QVBoxLayout()
-        select_bodyparts_layout.addLayout(sub_select_bodyparts_layout)
-        select_bodyparts_layout.addWidget(select_bodypart_button)
-
-        # Set widget layout
-        self.select_bodyparts_widget.setLayout(select_bodyparts_layout)
-
-        # Show widget
-        self.select_bodyparts_widget.setWindowTitle('Select Bodyparts')
-        self.select_bodyparts_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
-        self.select_bodyparts_widget.resize(400, 100)
-        self.select_bodyparts_widget.show()
-
-        # Start event loop
-        self.exec_event_loop()
-
-    def select_freezing_threshold(self, speed_distribution):
-        # Parameters
-        # speed_distribution [ndarr, 1D]: Return of the 'compute_speed_distribution'.
-
-        # Select freezing threshold widget
-        self.select_freezing_threshold_widget = QWidget()
-
-        # Estimate freezing threshold
-        freezing_threshold_1 = freezy.estimate_freezing_threshold(speed_distribution, detection_threshold=0.01)
-        freezing_threshold_5 = freezy.estimate_freezing_threshold(speed_distribution, detection_threshold=0.05)
-        freezing_threshold_10 = freezy.estimate_freezing_threshold(speed_distribution, detection_threshold=0.1)
-        freezing_threshold_20 = freezy.estimate_freezing_threshold(speed_distribution, detection_threshold=0.2)
-        freezing_threshold_50 = freezy.estimate_freezing_threshold(speed_distribution, detection_threshold=0.5)
-
-        # Figure
-        fig = go.Figure()
-        fig.add_trace(go.Scatter(y=speed_distribution, mode='lines'))
-        fig.add_hline(y=freezing_threshold_1, line_dash='dash', line_color='green',
-                      annotation_text='Superior 1% (Recommended)')
-        fig.add_hline(y=freezing_threshold_5, line_dash='dash', line_color='blue', annotation_text='Superior 5%')
-        fig.add_hline(y=freezing_threshold_10, line_dash='dash', line_color='red', annotation_text='Superior 10%')
-        fig.add_hline(y=freezing_threshold_20, line_dash='dash', line_color='purple', annotation_text='Superior 20%')
-        fig.add_hline(y=freezing_threshold_50, line_dash='dash', line_color='grey', annotation_text='Superior 50%')
-        fig.update_xaxes(title='Timestamp (s)')
-        fig.update_yaxes(title='Speed (cm/s)')
-        fig.update_layout(margin=dict(l=20, r=20, t=20, b=20))
-
-        # Widgets
-        speed_distribution_plot_webEngine = QWebEngineView()  # Plot: WebEngineView
-        speed_distribution_plot_webEngine.setHtml(fig.to_html(include_plotlyjs='cdn'))
-
-        select_freezing_threshold_speed_distribution = QLabel('Speed distribution')  # Label
-        select_freezing_threshold_estimation_label = QLabel('Freezing threshold estimation:')
-        select_freezing_threshold_label = QLabel('Select threshold:')
-        select_freezing_threshold_1_label = QLabel('Superior 1 %:')
-        select_freezing_threshold_5_label = QLabel('Superior 5 %:')
-        select_freezing_threshold_10_label = QLabel('Superior 10 %:')
-        select_freezing_threshold_20_label = QLabel('Superior 20 %:')
-        select_freezing_threshold_50_label = QLabel('Superior 50 %:')
-
-        self.select_freezing_threshold_editField = QLineEdit()  # LineEdit
-        self.select_freezing_threshold_editField.setPlaceholderText('Select freezing threshold.')
-        self.select_freezing_threshold_editField.setText(str(self.freezing_threshold))
-        self.select_freezing_threshold_editField.setValidator(QDoubleValidator())
-
-        select_freezing_threshold_1_lineEdit = QLineEdit()
-        select_freezing_threshold_1_lineEdit.setText(str(freezing_threshold_1))
-        select_freezing_threshold_1_lineEdit.setReadOnly(True)
-
-        select_freezing_threshold_5_lineEdit = QLineEdit()
-        select_freezing_threshold_5_lineEdit.setText(str(freezing_threshold_5))
-        select_freezing_threshold_5_lineEdit.setReadOnly(True)
-
-        select_freezing_threshold_10_lineEdit = QLineEdit()
-        select_freezing_threshold_10_lineEdit.setText(str(freezing_threshold_10))
-        select_freezing_threshold_10_lineEdit.setReadOnly(True)
-
-        select_freezing_threshold_20_lineEdit = QLineEdit()
-        select_freezing_threshold_20_lineEdit.setText(str(freezing_threshold_20))
-        select_freezing_threshold_20_lineEdit.setReadOnly(True)
-
-        select_freezing_threshold_50_lineEdit = QLineEdit()
-        select_freezing_threshold_50_lineEdit.setText(str(freezing_threshold_50))
-        select_freezing_threshold_50_lineEdit.setReadOnly(True)
-
-        select_freezing_threshold_button = QPushButton('Select Threshold')  # Button
-        select_freezing_threshold_button.clicked.connect(self.action_update_freezing_threshold)
-
-        # Frame
-        h_line = QFrame(self)
-        h_line.setFrameShape(QFrame.Shape.HLine)
-        h_line.setFrameShadow(QFrame.Shadow.Sunken)
-
-        # Layout
-        select_freezing_threshold_subLayout = QHBoxLayout()
-        select_freezing_threshold_subLayout.addWidget(select_freezing_threshold_label)
-        select_freezing_threshold_subLayout.addWidget(self.select_freezing_threshold_editField)
-
-        select_freezing_threshold_1_subLayout = QHBoxLayout()
-        select_freezing_threshold_1_subLayout.addWidget(select_freezing_threshold_1_label)
-        select_freezing_threshold_1_subLayout.addWidget(select_freezing_threshold_1_lineEdit)
-
-        select_freezing_threshold_5_subLayout = QHBoxLayout()
-        select_freezing_threshold_5_subLayout.addWidget(select_freezing_threshold_5_label)
-        select_freezing_threshold_5_subLayout.addWidget(select_freezing_threshold_5_lineEdit)
-
-        select_freezing_threshold_10_subLayout = QHBoxLayout()
-        select_freezing_threshold_10_subLayout.addWidget(select_freezing_threshold_10_label)
-        select_freezing_threshold_10_subLayout.addWidget(select_freezing_threshold_10_lineEdit)
-
-        select_freezing_threshold_20_subLayout = QHBoxLayout()
-        select_freezing_threshold_20_subLayout.addWidget(select_freezing_threshold_20_label)
-        select_freezing_threshold_20_subLayout.addWidget(select_freezing_threshold_20_lineEdit)
-
-        select_freezing_threshold_50_subLayout = QHBoxLayout()
-        select_freezing_threshold_50_subLayout.addWidget(select_freezing_threshold_50_label)
-        select_freezing_threshold_50_subLayout.addWidget(select_freezing_threshold_50_lineEdit)
-
-        select_freezing_threshold_layout = QVBoxLayout()
-        select_freezing_threshold_layout.addWidget(select_freezing_threshold_speed_distribution)
-        select_freezing_threshold_layout.addWidget(speed_distribution_plot_webEngine)
-
-        select_freezing_threshold_layout.addWidget(h_line)  # Horizontal line
-
-        select_freezing_threshold_layout.addWidget(select_freezing_threshold_estimation_label)
-        select_freezing_threshold_layout.addLayout(select_freezing_threshold_1_subLayout)
-        select_freezing_threshold_layout.addLayout(select_freezing_threshold_5_subLayout)
-        select_freezing_threshold_layout.addLayout(select_freezing_threshold_10_subLayout)
-        select_freezing_threshold_layout.addLayout(select_freezing_threshold_20_subLayout)
-        select_freezing_threshold_layout.addLayout(select_freezing_threshold_50_subLayout)
-
-        select_freezing_threshold_layout.addWidget(h_line)  # Horizontal line
-
-        select_freezing_threshold_layout.addLayout(select_freezing_threshold_subLayout)
-        select_freezing_threshold_layout.addWidget(select_freezing_threshold_button)
-
-        # Set widget layout
-        self.select_freezing_threshold_widget.setLayout(select_freezing_threshold_layout)
-
-        # Show widget
-        self.select_freezing_threshold_widget.setWindowTitle('Select Freezing Threshold')
-        self.select_freezing_threshold_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
-        self.select_freezing_threshold_widget.resize(720, 620)
-        self.select_freezing_threshold_widget.show()
-
-        # Start event loop
-        self.exec_event_loop()  # Temporary pause until freezing threshold updated
+    def closeEvent(self, event):
+        message = QMessageBox.question(self, "Question", "Are you sure you want to quit?",
+                                       QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                       QMessageBox.StandardButton.No)
+        if message == QMessageBox.StandardButton.Yes:
+            event.accept()
+        else:
+            event.ignore()
 
     # %% Displaying widgets
     def display_freezing_ratio(self):
@@ -516,17 +350,6 @@ class MainWidget(QMainWindow):
         self.selected_path_table.setRowCount(len(self.selected_paths))
         [self.selected_path_table.setItem(i, 0, QTableWidgetItem(path)) for i, path in enumerate(self.selected_paths)]
 
-    def action_select_bodyparts(self):
-        # Update bodyparts
-        self.x_bodypart = self.select_bodypart_x_coordinates_comboBox.currentText()
-        self.y_bodypart = self.select_bodypart_x_coordinates_comboBox.currentText()
-
-        # Release event loop
-        self.exit_event_loop()
-
-        # Close widget
-        self.close_widget(self.select_bodyparts_widget)
-
     def action_update_windowSize(self):
         # Update changed text
         try:
@@ -562,16 +385,6 @@ class MainWidget(QMainWindow):
         except:
             self.protocol = []  # Reset value
 
-    def action_update_freezing_threshold(self):
-        # Update freezing threshold
-        self.freezing_threshold = float(self.select_freezing_threshold_editField.text())
-
-        # Release event loop
-        self.exit_event_loop()
-
-        # Close widget
-        self.close_widget(self.select_freezing_threshold_widget)
-
     def action_run_analysis(self):
         # Check path
         if len(self.selected_paths) == 0:
@@ -589,8 +402,12 @@ class MainWidget(QMainWindow):
         dlc_coordinates = freezy.extract_data(self.selected_paths[0])
 
         # Select bodyparts
-        self.select_bodyparts(freezy.read_bodyparts(dlc_coordinates))
-        coordinates_x, coordinates_y = freezy.extract_coordinates(dlc_coordinates, self.x_bodypart, self.y_bodypart)
+        ui_select_bodyparts.SelectBodypartsWidget(self, freezy.read_bodyparts(dlc_coordinates))
+        if self.x_bodypart != 'none' and self.y_bodypart != 'none':  # Proceed when bodyparts are selected.
+            coordinates_x, coordinates_y = freezy.extract_coordinates(dlc_coordinates, self.x_bodypart, self.y_bodypart)
+        else:
+            self.exec_event_loop()  # Temporary pause until selected bodyparts are updated
+            return
 
         # Make 'route' with coordinates
         self.route = freezy.make_route(coordinates_x, coordinates_y)
@@ -603,7 +420,7 @@ class MainWidget(QMainWindow):
 
         # Select freezing threshold
         speed_distribution = freezy.compute_speed_distribution(self.speed)
-        self.select_freezing_threshold(speed_distribution)
+        ui_select_freezing_threshold.SelectFreezingThresholdWidget(self, speed_distribution)
 
         # Detect freezing
         freeze_or_not = freezy.detect_freezing(self.speed, freezing_threshold=self.freezing_threshold)
