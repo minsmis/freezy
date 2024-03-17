@@ -13,6 +13,7 @@ import pandas as pd
 
 import freezy
 import ui_select_bodyparts
+import ui_build_protocol
 import ui_select_freezing_threshold
 import ui_display_freezing_ratio
 
@@ -41,11 +42,11 @@ class MainWidget(QMainWindow):
         self.pixelPerCm = 26
 
         # Freezing threshold
-        self.program_freezing_threshold = 0
-        self.freezing_threshold = 0.3
+        self.freezing_threshold = ''
 
         # Protocol
-        self.protocol = [120, 30, 30, 30, 30, 30, 30, 30, 30, 30, 30]
+        self.default_protocol = [120, 30, 30, 30, 30]
+        self.protocol = []
 
         # Data
         self.route = []
@@ -68,9 +69,6 @@ class MainWidget(QMainWindow):
         setup_compute_speed_label = QLabel('3. Setup speed computing parameters')
         setup_compute_speed_fps_label = QLabel('FPS:')
         setup_compute_speed_pixelPerCm_label = QLabel('Pixel/cm:')
-
-        setup_protocol_label = QLabel('4. Setup protocol')
-        setup_protocol_protocol_label = QLabel('Protocol (s):')
 
         self.setup_smoothing_windowSize_lineEdit = QLineEdit()  # LineEdits
         self.setup_smoothing_windowSize_lineEdit.setPlaceholderText('window size')
@@ -95,11 +93,6 @@ class MainWidget(QMainWindow):
         self.setup_compute_speed_pixelPerCm_lineEdit.setValidator(QIntValidator())
         self.setup_compute_speed_pixelPerCm_lineEdit.setText(str(self.pixelPerCm))
         self.setup_compute_speed_pixelPerCm_lineEdit.textChanged.connect(self.action_update_pixelPerCm)
-
-        self.setup_protocol_lineEdit = QLineEdit()
-        self.setup_protocol_lineEdit.setPlaceholderText('protocol Ex. [120, 30, 30, ...]')
-        self.setup_protocol_lineEdit.setText(str(self.protocol))
-        self.setup_protocol_lineEdit.textChanged.connect(self.action_update_protocol)
 
         self.open_file_button = QPushButton('Select path')  # Buttons
         self.open_file_button.clicked.connect(self.action_select_paths)
@@ -133,17 +126,11 @@ class MainWidget(QMainWindow):
         sub_analysis_setup_compute_speed_layout.addWidget(setup_compute_speed_pixelPerCm_label)
         sub_analysis_setup_compute_speed_layout.addWidget(self.setup_compute_speed_pixelPerCm_lineEdit)
 
-        sub_analysis_setup_protocol_layout = QHBoxLayout()
-        sub_analysis_setup_protocol_layout.addWidget(setup_protocol_protocol_label)
-        sub_analysis_setup_protocol_layout.addWidget(self.setup_protocol_lineEdit)
-
         analysis_setup_layout = QVBoxLayout()
         analysis_setup_layout.addWidget(setup_smoothing_label)
         analysis_setup_layout.addLayout(sub_analysis_setup_smoothing_layout)
         analysis_setup_layout.addWidget(setup_compute_speed_label)
         analysis_setup_layout.addLayout(sub_analysis_setup_compute_speed_layout)
-        analysis_setup_layout.addWidget(setup_protocol_label)
-        analysis_setup_layout.addLayout(sub_analysis_setup_protocol_layout)
         analysis_setup_layout.addWidget(self.run_analysis_button)
 
         plot_layout = QVBoxLayout()
@@ -171,12 +158,13 @@ class MainWidget(QMainWindow):
         horizontal_splitter.setChildrenCollapsible(False)
         horizontal_splitter.addWidget(path_frame)
         horizontal_splitter.addWidget(analysis_setup_frame)
+        horizontal_splitter.setSizes([620, 404])
 
         vertical_splitter = QSplitter(Qt.Orientation.Vertical)
         vertical_splitter.setChildrenCollapsible(False)
         vertical_splitter.addWidget(horizontal_splitter)
         vertical_splitter.addWidget(plot_frame)
-        vertical_splitter.setStretchFactor(1, 10)
+        vertical_splitter.setSizes([240, 620])
 
         # Main layout
         main_layout = QGridLayout(self)
@@ -261,23 +249,20 @@ class MainWidget(QMainWindow):
         except:
             self.pixelPerCm = 0  # Reset value
 
-    def action_update_protocol(self):
-        # Update changed protocol
-        try:
-            self.protocol = eval(self.setup_protocol_lineEdit.text())
-        except:
-            self.protocol = []  # Reset value
-
     def action_run_analysis(self):
+
         # Check path
         if len(self.selected_paths) == 0:
             QMessageBox.warning(self, 'Path Error', 'Empty path.')
             return
 
         # Check parameter state
-        if self.windowSize <= 0 or self.order <= 0 or self.fps <= 0 or self.pixelPerCm <= 0 or len(self.protocol) == 0:
+        if self.windowSize <= 0 or self.order <= 0 or self.fps <= 0 or self.pixelPerCm <= 0:
             QMessageBox.warning(self, 'Value Error', 'Unexpected parameter.')
             return
+
+        # Reset parameters
+        self.reset_parameters()
 
         # Run analysis
         # Read DLC coordinates
@@ -286,9 +271,17 @@ class MainWidget(QMainWindow):
 
         # Select bodyparts
         ui_select_bodyparts.SelectBodypartsWidget(self, freezy.read_bodyparts(dlc_coordinates))
-        coordinates_x, coordinates_y = freezy.extract_coordinates(dlc_coordinates, self.x_bodypart, self.y_bodypart)
+        if self.x_bodypart != 'none' and self.y_bodypart != 'none':  # Check unfilled bodyparts
+            coordinates_x, coordinates_y = freezy.extract_coordinates(dlc_coordinates, self.x_bodypart, self.y_bodypart)
+        else:
+            return
 
-        # Make 'route' with coordinates
+        # Set protocol
+        ui_build_protocol.BuildProtocolWidget(self)
+        if not self.protocol:  # Check unfilled bodyparts
+            return
+
+            # Make 'route' with coordinates
         self.route = freezy.make_route(coordinates_x, coordinates_y)
 
         # Smooth route
@@ -300,6 +293,8 @@ class MainWidget(QMainWindow):
         # Select freezing threshold
         speed_distribution = freezy.compute_speed_distribution(self.speed)
         ui_select_freezing_threshold.SelectFreezingThresholdWidget(self, speed_distribution)
+        if self.freezing_threshold == '':  # Check unfilled freezing threshold
+            return
 
         # Detect freezing
         freeze_or_not = freezy.detect_freezing(self.speed, freezing_threshold=self.freezing_threshold)
@@ -312,9 +307,9 @@ class MainWidget(QMainWindow):
         self.plot_freezing_ratio()
         ui_display_freezing_ratio.DisplayFreezingRatioWidget(self, self.selected_paths, self.x_bodypart,
                                                              self.y_bodypart, self.windowSize, self.order, self.fps,
-                                                             self.pixelPerCm, self.program_freezing_threshold,
-                                                             self.freezing_threshold, self.protocol, self.route,
-                                                             self.smoothed_route, self.speed, self.freezing_ratio)
+                                                             self.pixelPerCm, self.freezing_threshold, self.protocol,
+                                                             self.route, self.smoothed_route, self.speed,
+                                                             self.freezing_ratio)
 
     # %% Application management functions
     def exec_event_loop(self):
@@ -325,6 +320,24 @@ class MainWidget(QMainWindow):
 
     def close_widget(self, widget):
         widget.close()
+
+    def reset_parameters(self):
+        # Bodyparts to extract
+        self.x_bodypart = 'none'
+        self.y_bodypart = 'none'
+
+        # Freezing threshold
+        self.freezing_threshold = ''
+
+        # Protocol
+        self.default_protocol = [120, 30, 30, 30, 30]
+        self.protocol = []
+
+        # Data
+        self.route = []
+        self.smoothed_route = []
+        self.speed = []
+        self.freezing_ratio = []
 
     # %% Application utility functions
     def plot_route(self):

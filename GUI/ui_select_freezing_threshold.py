@@ -20,8 +20,7 @@ class SelectFreezingThresholdWidget(QWidget):
         self.speed_distribution = speed_distribution
 
         # Freezing threshold
-        self.program_freezing_threshold = 0
-        self.freezing_threshold = 0.3
+        self.freezing_threshold = self.main_widget_handle.freezing_threshold
 
     def init_select_freezing_threshold(self):
         # Parameters
@@ -153,6 +152,17 @@ class SelectFreezingThresholdWidget(QWidget):
         event.accept()  # Close window
 
     def action_update_freezing_threshold(self):
+        # Check unfilled freezing threshold
+        if self.select_freezing_threshold_editField.text() == '':
+            message = QMessageBox.warning(self, 'Warning',
+                                          'Freezing threshold is empty. Are you sure to abort analysis?',
+                                          QMessageBox.StandardButton.Yes | QMessageBox.StandardButton.No,
+                                          QMessageBox.StandardButton.No)
+            if message == QMessageBox.StandardButton.No:
+                return
+            if message == QMessageBox.StandardButton.Yes:
+                self.close_widget(self)
+
         # Update freezing threshold
         self.freezing_threshold = float(self.select_freezing_threshold_editField.text())
 

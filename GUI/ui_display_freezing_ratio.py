@@ -16,18 +16,16 @@ import freezy
 
 class DisplayFreezingRatioWidget(QWidget):
     def __init__(self, main_widget_handle, selected_paths, x_bodypart, y_bodypart, windowSize, order, fps, pixelPerCm,
-                 program_freezing_threshold, freezing_threshold, protocol, route, smoothed_route, speed,
-                 freezing_ratio):
+                 freezing_threshold, protocol, route, smoothed_route, speed, freezing_ratio):
         super().__init__()
 
         self.init_parameters(main_widget_handle, selected_paths, x_bodypart, y_bodypart, windowSize, order, fps,
-                             pixelPerCm, program_freezing_threshold, freezing_threshold, protocol, speed, route,
-                             smoothed_route, freezing_ratio)  # init parameters
+                             pixelPerCm, freezing_threshold, protocol, speed, route, smoothed_route,
+                             freezing_ratio)  # init parameters
         self.init_display_freezing_ratio()  # init display freezing ratio
 
     def init_parameters(self, main_widget_handle, selected_paths, x_bodypart, y_bodypart, windowSize, order, fps,
-                        pixelPerCm, program_freezing_threshold, freezing_threshold, protocol, route, smoothed_route,
-                        speed, freezing_ratio):
+                        pixelPerCm, freezing_threshold, protocol, route, smoothed_route, speed, freezing_ratio):
         # Main widget handle
         self.main_widget_handle = main_widget_handle
 
@@ -45,7 +43,6 @@ class DisplayFreezingRatioWidget(QWidget):
         self.pixelPerCm = pixelPerCm
 
         # Freezing threshold
-        self.program_freezing_threshold = program_freezing_threshold
         self.freezing_threshold = freezing_threshold
 
         # Protocol
@@ -66,12 +63,15 @@ class DisplayFreezingRatioWidget(QWidget):
         display_freezing_ratio_smoothing_parameter_windowSize_label = QLabel('Window Size:')
         display_freezing_ratio_smoothing_parameter_order_label = QLabel('Order:')
 
-        display_freezing_ratio_compute_speed_parameter_report_label = QLabel('3. Compute speed parameters')
+        display_freezing_ratio_compute_speed_parameter_report_label = QLabel('3. Compute Speed Parameters')
         display_freezing_ratio_compute_speed_parameter_fps_label = QLabel('FPS:')
         display_freezing_ratio_compute_speed_parameter_pixelPerCm_label = QLabel('Pixel/cm:')
 
         display_freezing_ratio_protocol_label = QLabel('4. Protocol')
         display_freezing_ratio_protocol_protocol_label = QLabel('Protocol:')
+
+        display_freezing_ratio_freezing_threshold_label = QLabel('5. Freezing Threshold')
+        display_freezing_ratio_freezing_threshold_threshold_label = QLabel('Freezing Threshold: ')
 
         display_freezing_ratio_result_label = QLabel('Results')
 
@@ -98,6 +98,10 @@ class DisplayFreezingRatioWidget(QWidget):
         display_freezing_ratio_protocol_protocol_lineEdit = QLineEdit()
         display_freezing_ratio_protocol_protocol_lineEdit.setText(str(self.protocol))
         display_freezing_ratio_protocol_protocol_lineEdit.setReadOnly(True)
+
+        display_freezing_ratio_freezing_threshold_lineEdit = QLineEdit()
+        display_freezing_ratio_freezing_threshold_lineEdit.setText(str(self.freezing_threshold))
+        display_freezing_ratio_freezing_threshold_lineEdit.setReadOnly(True)
 
         display_freezing_ratio_table = QTableWidget(self)  # Tables
         display_freezing_ratio_table.setColumnCount(2)
@@ -144,6 +148,11 @@ class DisplayFreezingRatioWidget(QWidget):
         display_freezing_ratio_protocol_layout.addWidget(display_freezing_ratio_protocol_protocol_label)
         display_freezing_ratio_protocol_layout.addWidget(display_freezing_ratio_protocol_protocol_lineEdit)
 
+        display_freezing_ratio_freezing_threshold_layout = QHBoxLayout()  # Freezing threshold layout
+        display_freezing_ratio_freezing_threshold_layout.addWidget(
+            display_freezing_ratio_freezing_threshold_threshold_label)
+        display_freezing_ratio_freezing_threshold_layout.addWidget(display_freezing_ratio_freezing_threshold_lineEdit)
+
         display_freezing_ratio_buttons_layout = QHBoxLayout()  # Buttons layout
         display_freezing_ratio_buttons_layout.addWidget(display_freezing_ratio_save_button)
         display_freezing_ratio_buttons_layout.addWidget(display_freezing_ratio_cancel_button)
@@ -158,6 +167,8 @@ class DisplayFreezingRatioWidget(QWidget):
         display_freezing_ratio_layout.addLayout(display_freezing_ratio_compute_speed_layout)
         display_freezing_ratio_layout.addWidget(display_freezing_ratio_protocol_label)
         display_freezing_ratio_layout.addLayout(display_freezing_ratio_protocol_layout)
+        display_freezing_ratio_layout.addWidget(display_freezing_ratio_freezing_threshold_label)
+        display_freezing_ratio_layout.addLayout(display_freezing_ratio_freezing_threshold_layout)
         display_freezing_ratio_layout.addWidget(display_freezing_ratio_result_label)
         display_freezing_ratio_layout.addWidget(display_freezing_ratio_table)
         display_freezing_ratio_layout.addLayout(display_freezing_ratio_buttons_layout)
@@ -168,7 +179,7 @@ class DisplayFreezingRatioWidget(QWidget):
         # Show widget
         self.setWindowTitle('Result Report: Freezing Ratio')
         self.setWindowModality(Qt.WindowModality.ApplicationModal)
-        self.resize(400, 700)
+        self.resize(450, 720)
         self.show()
 
     def action_save_freezing_ratio(self):
@@ -184,6 +195,7 @@ class DisplayFreezingRatioWidget(QWidget):
         }, index=[0])
         data_result = pd.DataFrame({
             'Protocol (s)': self.protocol,
+            'Freezing Threshold (s)': self.freezing_threshold,
             'Freezing Ratio (%)': self.freezing_ratio
         })
         speed_result = pd.DataFrame({
