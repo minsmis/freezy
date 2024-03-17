@@ -22,9 +22,6 @@ class SelectBodypartsWidget(QWidget):
         # Parameters
         # dlc_coordinates [DataFrame]: Return of 'extract_data'.
 
-        # Select bodyparts widget
-        self.select_bodyparts_widget = QWidget()
-
         # Widgets
         select_bodypart_x_coordinates_label = QLabel('Select X bodypart.')  # Labels
         select_bodypart_y_coordinates_label = QLabel('Select Y bodypart.')
@@ -57,24 +54,20 @@ class SelectBodypartsWidget(QWidget):
         select_bodyparts_layout.addWidget(select_bodypart_button)
 
         # Set widget layout
-        self.select_bodyparts_widget.setLayout(select_bodyparts_layout)
+        self.setLayout(select_bodyparts_layout)
 
         # Show widget
-        self.select_bodyparts_widget.setWindowTitle('Select Bodyparts')
-        self.select_bodyparts_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
-        self.select_bodyparts_widget.resize(400, 100)
-        self.select_bodyparts_widget.show()
+        self.setWindowTitle('Select Bodyparts')
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.resize(400, 100)
+        self.show()
 
         # Start event loop
         self.main_widget_handle.exec_event_loop()  # Temporary pause until selected bodyparts are updated
 
-    def closeEvent(self, event, QCloseEvent=None):
-        message = QMessageBox.question(self, 'Question', 'Are you sure you want to close?')
-        if message == QMessageBox.StandardButton.Yes:
-            self.main_widget_handle.exit_event_loop()  # Release event loop
-            event.accept()  # Close window
-        else:
-            event.ignore()  # Do not close window
+    def closeEvent(self, event):
+        self.main_widget_handle.exit_event_loop()  # Release event loop
+        event.accept()  # Close window
 
     def action_select_bodyparts(self):
         # Update bodyparts
@@ -89,7 +82,7 @@ class SelectBodypartsWidget(QWidget):
         self.main_widget_handle.exit_event_loop()
 
         # Close widget
-        self.close_widget(self.select_bodyparts_widget)
+        self.close_widget(self)
 
     def close_widget(self, widget):
         widget.close()

@@ -27,9 +27,6 @@ class SelectFreezingThresholdWidget(QWidget):
         # Parameters
         # speed_distribution [ndarr, 1D]: Return of the 'compute_speed_distribution'.
 
-        # Select freezing threshold widget
-        self.select_freezing_threshold_widget = QWidget()
-
         # Estimate freezing threshold
         freezing_threshold_1 = freezy.estimate_freezing_threshold(self.speed_distribution, detection_threshold=0.01)
         freezing_threshold_5 = freezy.estimate_freezing_threshold(self.speed_distribution, detection_threshold=0.05)
@@ -140,24 +137,20 @@ class SelectFreezingThresholdWidget(QWidget):
         select_freezing_threshold_layout.addWidget(select_freezing_threshold_button)
 
         # Set widget layout
-        self.select_freezing_threshold_widget.setLayout(select_freezing_threshold_layout)
+        self.setLayout(select_freezing_threshold_layout)
 
         # Show widget
-        self.select_freezing_threshold_widget.setWindowTitle('Select Freezing Threshold')
-        self.select_freezing_threshold_widget.setWindowModality(Qt.WindowModality.ApplicationModal)
-        self.select_freezing_threshold_widget.resize(720, 620)
-        self.select_freezing_threshold_widget.show()
+        self.setWindowTitle('Select Freezing Threshold')
+        self.setWindowModality(Qt.WindowModality.ApplicationModal)
+        self.resize(720, 620)
+        self.show()
 
         # Start event loop
         self.main_widget_handle.exec_event_loop()  # Temporary pause until freezing threshold updated
 
-    def closeEvent(self, event, QCloseEvent=None):
-        message = QMessageBox.question(self, 'Question', 'Are you sure you want to close?')
-        if message == QMessageBox.StandardButton.Yes:
-            self.main_widget_handle.exit_event_loop()  # Release event loop
-            event.accept()  # Close window
-        else:
-            event.ignore()  # Do not close window
+    def closeEvent(self, event):
+        self.main_widget_handle.exit_event_loop()  # Release event loop
+        event.accept()  # Close window
 
     def action_update_freezing_threshold(self):
         # Update freezing threshold
@@ -170,7 +163,7 @@ class SelectFreezingThresholdWidget(QWidget):
         self.main_widget_handle.exit_event_loop()
 
         # Close widget
-        self.close_widget(self.select_freezing_threshold_widget)
+        self.close_widget(self)
 
     def close_widget(self, widget):
         widget.close()
