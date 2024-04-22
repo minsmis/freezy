@@ -85,7 +85,7 @@ class BuildProtocolWidget(QWidget):
         self.build_protocol_post_hold_duration_lineEdit.setText(str(self.post_hold_duration))
         self.build_protocol_post_hold_duration_lineEdit.setPlaceholderText('Set post-hold duration duration [s].')
         self.build_protocol_post_hold_duration_lineEdit.setValidator(QIntValidator())
-        self.build_protocol_post_hold_duration_lineEdit.textChanged.connect(self.action_update_baseline)
+        self.build_protocol_post_hold_duration_lineEdit.textChanged.connect(self.action_update_post_hold_duration)
 
         self.protocol_plot_webEngine = QWebEngineView()  # Plot: WebEngineViews
         self.protocol_plot_webEngine.setHtml(
