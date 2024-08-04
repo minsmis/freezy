@@ -20,7 +20,7 @@ class DisplayFreezingRatioWidget(QWidget):
         super().__init__()
 
         self.init_parameters(main_widget_handle, selected_paths, x_bodypart, y_bodypart, windowSize, order, fps,
-                             pixelPerCm, freezing_threshold, protocol, speed, route, smoothed_route,
+                             pixelPerCm, freezing_threshold, protocol, route, smoothed_route, speed,
                              freezing_ratio)  # init parameters
         self.init_display_freezing_ratio()  # init display freezing ratio
 
