@@ -15,6 +15,7 @@ import freezy
 import ui_select_bodyparts
 import ui_build_protocol
 import ui_select_freezing_threshold
+import ui_select_freezing_threshold_method
 import ui_display_freezing_ratio
 
 
@@ -43,6 +44,7 @@ class MainWidget(QMainWindow):
 
         # Freezing threshold
         self.freezing_threshold = ''
+        self.freezing_threshold_method = None
 
         # Protocol
         self.default_protocol = [120, 30, 30, 30, 30]
@@ -97,6 +99,9 @@ class MainWidget(QMainWindow):
         self.open_file_button = QPushButton('Select path')  # Buttons
         self.open_file_button.clicked.connect(self.action_select_paths)
 
+        self.open_batch_button = QPushButton('Select batch directory')
+        self.open_batch_button.clicked.connect(self.action_select_dir)
+
         self.run_analysis_button = QPushButton('Run Analysis')
         self.run_analysis_button.clicked.connect(self.action_run_analysis)
 
@@ -109,9 +114,13 @@ class MainWidget(QMainWindow):
         self.freezing_ratio_plot_webEngine = QWebEngineView()
 
         # Layout
+        path_button_layout = QHBoxLayout()
+        path_button_layout.addWidget(self.open_file_button)
+        path_button_layout.addWidget(self.open_batch_button)
+
         path_layout = QVBoxLayout()
         path_layout.addWidget(open_file_label)
-        path_layout.addWidget(self.open_file_button)
+        path_layout.addLayout(path_button_layout)
         path_layout.addWidget(self.selected_path_table)
 
         sub_analysis_setup_smoothing_layout = QHBoxLayout()
@@ -221,6 +230,25 @@ class MainWidget(QMainWindow):
         self.selected_path_table.setRowCount(len(self.selected_paths))
         [self.selected_path_table.setItem(i, 0, QTableWidgetItem(path)) for i, path in enumerate(self.selected_paths)]
 
+    def action_select_dir(self):
+        # Open directory selection dialog
+        selected_dir = QFileDialog.getExistingDirectory(self, 'Select directory', os.getcwd())
+
+        if not selected_dir:
+            return  # 취소 시 종료
+
+        # Make directory list
+        self.selected_paths = []
+        for root, dirs, files in os.walk(selected_dir):
+            for file in files:
+                full_path = os.path.join(root, file)
+                self.selected_paths.append(full_path)
+
+        # Display selected directory in table widget
+        self.selected_path_table.setRowCount(len(self.selected_paths))
+        self.selected_path_table.setColumnCount(1)
+        [self.selected_path_table.setItem(i, 0, QTableWidgetItem(path)) for i, path in enumerate(self.selected_paths)]
+
     def action_update_windowSize(self):
         # Update changed text
         try:
@@ -249,6 +277,42 @@ class MainWidget(QMainWindow):
         except:
             self.pixelPerCm = 0  # Reset value
 
+    def _save_freezing_ratio_to_excel(self, save_path, original_path):
+        # Make dataframe
+        setup_result = pd.DataFrame({
+            'Path': original_path,
+            'Bodypart (X)': self.x_bodypart,
+            'Bodypart (Y)': self.y_bodypart,
+            'Window Size': self.windowSize,
+            'Order': self.order,
+            'FPS': self.fps,
+            'Pixel/cm': self.pixelPerCm
+        }, index=[0])
+
+        data_result = pd.DataFrame({
+            'Protocol (s)': self.protocol,
+            'Freezing Threshold (cm/s)': self.freezing_threshold,
+            'Freezing Ratio (%)': self.freezing_ratio
+        })
+
+        speed_result = pd.DataFrame({
+            'Speed (cm/s)': self.speed
+        })
+
+        route_result = pd.DataFrame({
+            'Route (X)': self.route[0],
+            'Route (Y)': self.route[1],
+            'Smoothed Route (X)': self.smoothed_route[0],
+            'Smoothed Route (Y)': self.smoothed_route[1]
+        })
+
+        # Save file
+        with pd.ExcelWriter(save_path) as writer:
+            data_result.to_excel(writer, sheet_name='Data', index=False)
+            speed_result.to_excel(writer, sheet_name='Speed', index=False)
+            route_result.to_excel(writer, sheet_name='Route', index=False)
+            setup_result.to_excel(writer, sheet_name='Setup', index=False)
+
     def action_run_analysis(self):
 
         # Check path
@@ -264,52 +328,186 @@ class MainWidget(QMainWindow):
         # Reset parameters
         self.reset_parameters()
 
-        # Run analysis
-        # Read DLC coordinates
-        ''' Now this application performs analysis for first selected data. '''
-        dlc_coordinates = freezy.extract_data(self.selected_paths[0])
+        # ----------------------- batch analysis -----------------------------------
+        if len(self.selected_paths) > 1:
+            # Run analysis - for the first data
+            first_path = self.selected_paths[0]
+            dlc_coordinates = freezy.extract_data(first_path)
 
-        # Select bodyparts
-        ui_select_bodyparts.SelectBodypartsWidget(self, freezy.read_bodyparts(dlc_coordinates))
-        if self.x_bodypart != 'none' and self.y_bodypart != 'none':  # Check unfilled bodyparts
-            coordinates_x, coordinates_y = freezy.extract_coordinates(dlc_coordinates, self.x_bodypart, self.y_bodypart)
-        else:
-            return
+            # Select bodyparts (ONCE)
+            ui_select_bodyparts.SelectBodypartsWidget(
+                self, freezy.read_bodyparts(dlc_coordinates)
+            )
+            if self.x_bodypart == 'none' or self.y_bodypart == 'none':
+                return
 
-        # Set protocol
-        ui_build_protocol.BuildProtocolWidget(self)
-        if not self.protocol:  # Check unfilled bodyparts
-            return
+            # Extract coordinates (first file)
+            coordinates_x, coordinates_y = freezy.extract_coordinates(
+                dlc_coordinates, self.x_bodypart, self.y_bodypart
+            )
 
-            # Make 'route' with coordinates
-        self.route = freezy.make_route(coordinates_x, coordinates_y)
+            # Select protocol (ONCE)
+            ui_build_protocol.BuildProtocolWidget(self)
+            if not self.protocol:
+                return
 
-        # Smooth route
-        self.smoothed_route = freezy.smooth_route(self.route, window_size=self.windowSize)
+            # Select freezing threshold mode (ONCE)
+            dialog = ui_select_freezing_threshold_method.SelectFreezingThresholdModeDialog(self)
+            result = dialog.exec()
 
-        # Compute speed
-        self.speed = freezy.compute_speed(self.smoothed_route, fps=self.fps, pixel_per_cm=self.pixelPerCm)
+            if result != QDialog.DialogCode.Accepted:
+                return
 
-        # Select freezing threshold
-        speed_distribution = freezy.compute_speed_distribution(self.speed)
-        ui_select_freezing_threshold.SelectFreezingThresholdWidget(self, speed_distribution)
-        if self.freezing_threshold == '':  # Check unfilled freezing threshold
-            return
+            self.freezing_threshold_method = dialog.selected_mode
 
-        # Detect freezing
-        freeze_or_not = freezy.detect_freezing(self.speed, freezing_threshold=self.freezing_threshold)
+            # Select freezing threshold (ONCE)
+            if self.freezing_threshold_method == 'manual':
+                # Make route & speed (first file)
+                route = freezy.make_route(coordinates_x, coordinates_y)
+                smoothed_route = freezy.smooth_route(route, window_size=self.windowSize)
+                speed = freezy.compute_speed(
+                    smoothed_route, fps=self.fps, pixel_per_cm=self.pixelPerCm
+                )
 
-        # Calculate freezing ratio for the protocol
-        self.freezing_ratio = freezy.compute_freezing_ratio(freeze_or_not, self.protocol)
+                speed_distribution = freezy.compute_speed_distribution(speed)
+                ui_select_freezing_threshold.SelectFreezingThresholdWidget(
+                    self, speed_distribution
+                )
+                if self.freezing_threshold == '':
+                    return
 
-        # Display results
-        self.plot_speed()
-        self.plot_freezing_ratio()
-        ui_display_freezing_ratio.DisplayFreezingRatioWidget(self, self.selected_paths, self.x_bodypart,
-                                                             self.y_bodypart, self.windowSize, self.order, self.fps,
-                                                             self.pixelPerCm, self.freezing_threshold, self.protocol,
-                                                             self.route, self.smoothed_route, self.speed,
-                                                             self.freezing_ratio)
+            # Run analysis - for all data
+            total = len(self.selected_paths)
+
+            # Progress dialog
+            progress = QProgressDialog("Analyzing files...", "Cancel", 0, total, self)
+            progress.setWindowTitle("Processing")
+            progress.setWindowModality(Qt.WindowModality.WindowModal)
+            progress.setMinimumDuration(0)  # 바로 표시
+            progress.show()
+
+            for i, path in enumerate(self.selected_paths):
+
+                # Cancel check
+                if progress.wasCanceled():
+                    break
+
+                progress.setLabelText(
+                    f"Processing {i + 1} / {total}\n{os.path.basename(path)}"
+                )
+                progress.setValue(i)
+
+                # -----------------------
+                # Read data
+                dlc_coordinates = freezy.extract_data(path)
+                coordinates_x, coordinates_y = freezy.extract_coordinates(
+                    dlc_coordinates, self.x_bodypart, self.y_bodypart
+                )
+
+                # Analysis
+                self.route = freezy.make_route(coordinates_x, coordinates_y)
+                self.smoothed_route = freezy.smooth_route(
+                    self.route, window_size=self.windowSize
+                )
+                self.speed = freezy.compute_speed(
+                    self.smoothed_route, fps=self.fps, pixel_per_cm=self.pixelPerCm
+                )
+
+                # Calculate freezing threshold
+                if self.freezing_threshold_method == 'manual':
+                    # 이미 첫 파일에서 설정됨 → 그대로 사용
+                    self.freezing_threshold = self.freezing_threshold
+                else:
+                    # speed distribution은 파일마다 계산
+                    speed_distribution = freezy.compute_speed_distribution(self.speed)
+
+                    if self.freezing_threshold_method == 'auto':
+                        self.freezing_threshold = freezy.estimate_freezing_threshold(
+                            speed_distribution, detection_threshold=0.01
+                        )
+
+                    elif self.freezing_threshold_method == 'superior_1':
+                        self.freezing_threshold = freezy.estimate_freezing_threshold(
+                            speed_distribution, detection_threshold=0.01
+                        )
+
+                    elif self.freezing_threshold_method == 'superior_5':
+                        self.freezing_threshold = freezy.estimate_freezing_threshold(
+                            speed_distribution, detection_threshold=0.05
+                        )
+
+                    else:
+                        raise ValueError(f"Unknown freezing_threshold_method: {self.freezing_threshold_method}")
+
+                # Analysis continue
+                freeze_or_not = freezy.detect_freezing(
+                    self.speed, freezing_threshold=self.freezing_threshold
+                )
+                self.freezing_ratio = freezy.compute_freezing_ratio(
+                    freeze_or_not, self.protocol
+                )
+
+                # Save results
+                base_name = os.path.splitext(os.path.basename(path))[0]
+                save_path = os.path.join(
+                    os.path.dirname(path),
+                    f"{base_name}_freezy.xlsx"
+                )
+
+                self._save_freezing_ratio_to_excel(save_path, path)
+
+            progress.setValue(total)
+            progress.close()
+            QMessageBox.information(self, 'Done', 'Analysis completed for all files.')
+
+        if len(self.selected_paths) == 1:
+            # Read DLC coordinates
+            ''' Now this application performs analysis for first selected data. '''
+            dlc_coordinates = freezy.extract_data(self.selected_paths[0])
+
+            # Select bodyparts
+            ui_select_bodyparts.SelectBodypartsWidget(self, freezy.read_bodyparts(dlc_coordinates))
+            if self.x_bodypart != 'none' and self.y_bodypart != 'none':  # Check unfilled bodyparts
+                coordinates_x, coordinates_y = freezy.extract_coordinates(dlc_coordinates, self.x_bodypart,
+                                                                          self.y_bodypart)
+            else:
+                return
+
+            # Set protocol
+            ui_build_protocol.BuildProtocolWidget(self)
+            if not self.protocol:  # Check unfilled bodyparts
+                return
+
+                # Make 'route' with coordinates
+            self.route = freezy.make_route(coordinates_x, coordinates_y)
+
+            # Smooth route
+            self.smoothed_route = freezy.smooth_route(self.route, window_size=self.windowSize)
+
+            # Compute speed
+            self.speed = freezy.compute_speed(self.smoothed_route, fps=self.fps, pixel_per_cm=self.pixelPerCm)
+
+            # Select freezing threshold
+            speed_distribution = freezy.compute_speed_distribution(self.speed)
+            ui_select_freezing_threshold.SelectFreezingThresholdWidget(self, speed_distribution)
+            if self.freezing_threshold == '':  # Check unfilled freezing threshold
+                return
+
+            # Detect freezing
+            freeze_or_not = freezy.detect_freezing(self.speed, freezing_threshold=self.freezing_threshold)
+
+            # Calculate freezing ratio for the protocol
+            self.freezing_ratio = freezy.compute_freezing_ratio(freeze_or_not, self.protocol)
+
+            # Display results
+            self.plot_speed()
+            self.plot_freezing_ratio()
+            ui_display_freezing_ratio.DisplayFreezingRatioWidget(self, self.selected_paths, self.x_bodypart,
+                                                                 self.y_bodypart, self.windowSize, self.order, self.fps,
+                                                                 self.pixelPerCm, self.freezing_threshold,
+                                                                 self.protocol,
+                                                                 self.route, self.smoothed_route, self.speed,
+                                                                 self.freezing_ratio)
 
     # %% Application management functions
     def exec_event_loop(self):
