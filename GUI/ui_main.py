@@ -460,6 +460,7 @@ class MainWidget(QMainWindow):
             progress.close()
             QMessageBox.information(self, 'Done', 'Analysis completed for all files.')
 
+        # ----------------------- single data analysis -----------------------------------
         if len(self.selected_paths) == 1:
             # Read DLC coordinates
             ''' Now this application performs analysis for first selected data. '''
