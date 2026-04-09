@@ -9,7 +9,7 @@ class SelectFreezingThresholdModeDialog(QDialog):
     def __init__(self, parent=None):
         super().__init__(parent)
 
-        self.selected_mode = None  # 'auto', '1%', '5%'
+        self.selected_mode = None  # 'auto', '1%', '5%', '10%'
         self.init_ui()
 
     def init_ui(self):
@@ -21,6 +21,7 @@ class SelectFreezingThresholdModeDialog(QDialog):
         self.radio_auto = QRadioButton("Auto (recommended)")
         self.radio_1 = QRadioButton("Superior 1%")
         self.radio_5 = QRadioButton("Superior 5%")
+        self.radio_10 = QRadioButton("Superior 10%")
         self.radio_manual = QRadioButton("Manual")
 
         self.radio_auto.setChecked(True)
@@ -36,6 +37,7 @@ class SelectFreezingThresholdModeDialog(QDialog):
         layout.addWidget(self.radio_auto)
         layout.addWidget(self.radio_1)
         layout.addWidget(self.radio_5)
+        layout.addWidget(self.radio_10)
         layout.addWidget(self.radio_manual)
 
         button_layout = QHBoxLayout()
@@ -54,6 +56,8 @@ class SelectFreezingThresholdModeDialog(QDialog):
             self.selected_mode = 'superior_1'
         elif self.radio_5.isChecked():
             self.selected_mode = 'superior_5'
+        elif self.radio_10.isChecked():
+            self.selected_mode = 'superior_10'
         elif self.radio_manual.isChecked():
             self.selected_mode = 'manual'
 

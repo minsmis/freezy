@@ -436,6 +436,11 @@ class MainWidget(QMainWindow):
                             speed_distribution, detection_threshold=0.05
                         )
 
+                    elif self.freezing_threshold_method == 'superior_10':
+                        self.freezing_threshold = freezy.estimate_freezing_threshold(
+                            speed_distribution, detection_threshold=0.1
+                        )
+
                     else:
                         raise ValueError(f"Unknown freezing_threshold_method: {self.freezing_threshold_method}")
 
