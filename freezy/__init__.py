@@ -19,3 +19,6 @@ from .freeze import estimate_freezing_threshold
 from .freeze import compute_speed_distribution
 from .freeze import detect_freezing
 from .freeze import compute_freezing_ratio
+
+# image.py
+from .image import *
