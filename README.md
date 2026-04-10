@@ -23,7 +23,29 @@ pip install freezy
 ```
 pip install freezy
 ```
-2. Run ```ui_main.py``` in ./GUI (**Freezy application will be deployed ASAP!**).
+2. Install other dependencies.
+```
+pip install numpy
+pip install pandas
+pip install pyqt6
+pip install pyqt6-webengine
+pip install plotly
+pip install openpyxl
+```
+3. Install deeplabcut dependencies (https://deeplabcut.github.io/DeepLabCut/docs/installation.html).
+```
+// Deeplabcut installation instructions at 2026.04.10
+
+// Install pytorch
+pip3 install torch torchvision --index-url https://download.pytorch.org/whl/cu128
+
+// Install deeplabcut
+pip install --pre deeplabcut[gui]
+
+// Check installation; If you can see 'True' and 'your GPU name', the installation was succeed.
+python -c "import torch; print(torch.cuda.is_available()); print(torch.cuda.get_device_name(0))"
+```
+4. Run ```ui_main.py``` in ./GUI (**Freezy application will be deployed ASAP!**).
 
 # Speed formula
 
