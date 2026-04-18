@@ -341,11 +341,6 @@ class MainWidget(QMainWindow):
             if self.x_bodypart == 'none' or self.y_bodypart == 'none':
                 return
 
-            # Extract coordinates (first file)
-            coordinates_x, coordinates_y = freezy.extract_coordinates(
-                dlc_coordinates, self.x_bodypart, self.y_bodypart
-            )
-
             # Select protocol (ONCE)
             ui_build_protocol.BuildProtocolWidget(self)
             if not self.protocol:
@@ -360,22 +355,6 @@ class MainWidget(QMainWindow):
 
             self.freezing_threshold_method = dialog.selected_mode
 
-            # Select freezing threshold (ONCE)
-            if self.freezing_threshold_method == 'manual':
-                # Make route & speed (first file)
-                route = freezy.make_route(coordinates_x, coordinates_y)
-                smoothed_route = freezy.smooth_route(route, window_size=self.windowSize)
-                speed = freezy.compute_speed(
-                    smoothed_route, fps=self.fps, pixel_per_cm=self.pixelPerCm
-                )
-
-                speed_distribution = freezy.compute_speed_distribution(speed)
-                ui_select_freezing_threshold.SelectFreezingThresholdWidget(
-                    self, speed_distribution
-                )
-                if self.freezing_threshold == '':
-                    return
-
             # Run analysis - for all data
             total = len(self.selected_paths)
 
@@ -383,9 +362,8 @@ class MainWidget(QMainWindow):
             progress = QProgressDialog("Analyzing files...", "Cancel", 0, total, self)
             progress.setWindowTitle("Processing")
             progress.setWindowModality(Qt.WindowModality.WindowModal)
-            progress.setMinimumDuration(0)  # 바로 표시
+            progress.setMinimumDuration(0)
             progress.show()
-
             for i, path in enumerate(self.selected_paths):
 
                 # Cancel check
@@ -397,7 +375,6 @@ class MainWidget(QMainWindow):
                 )
                 progress.setValue(i)
 
-                # -----------------------
                 # Read data
                 dlc_coordinates = freezy.extract_data(path)
                 coordinates_x, coordinates_y = freezy.extract_coordinates(
@@ -415,10 +392,26 @@ class MainWidget(QMainWindow):
 
                 # Calculate freezing threshold
                 if self.freezing_threshold_method == 'manual':
-                    # 이미 첫 파일에서 설정됨 → 그대로 사용
-                    self.freezing_threshold = self.freezing_threshold
+                    speed_distribution = freezy.compute_speed_distribution(self.speed)
+
+                    progress.hide()  # threshold dialog가 progress 뒤에 가려지지 않도록
+                    self.freezing_threshold = ''  # 매 파일마다 초기화
+
+                    ui_select_freezing_threshold.SelectFreezingThresholdWidget(
+                        self, speed_distribution
+                    )
+
+                    progress.show()
+
+                    if self.freezing_threshold == '':
+                        QMessageBox.information(
+                            self, 'Canceled',
+                            f'Manual threshold selection canceled at file:\n{os.path.basename(path)}'
+                        )
+                        progress.close()
+                        return
+
                 else:
-                    # speed distribution은 파일마다 계산
                     speed_distribution = freezy.compute_speed_distribution(self.speed)
 
                     if self.freezing_threshold_method == 'auto':
@@ -442,12 +435,16 @@ class MainWidget(QMainWindow):
                         )
 
                     else:
-                        raise ValueError(f"Unknown freezing_threshold_method: {self.freezing_threshold_method}")
+                        raise ValueError(
+                            f"Unknown freezing_threshold_method: {self.freezing_threshold_method}"
+                        )
 
-                # Analysis continue
+                # Detect freezing
                 freeze_or_not = freezy.detect_freezing(
                     self.speed, freezing_threshold=self.freezing_threshold
                 )
+
+                # Calculate freezing ratio
                 self.freezing_ratio = freezy.compute_freezing_ratio(
                     freeze_or_not, self.protocol
                 )
