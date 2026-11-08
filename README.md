@@ -9,6 +9,10 @@
   filter.
 - Detect freezing using speed.
 
+## Technical documentation
+
+See the [Korean Technical Documentation](./docs/TECHNICAL.md) or the [English Technical Documentation](./docs/TECHNICAL.en.md) for the package structure, input formats, analysis pipeline, public API, and implementation notes.
+
 # How to use
 
 ### For python script users: 
