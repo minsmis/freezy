@@ -72,7 +72,7 @@ class SelectBodypartsWidget(QWidget):
     def action_select_bodyparts(self):
         # Update bodyparts
         self.x_bodypart = self.select_bodypart_x_coordinates_comboBox.currentText()
-        self.y_bodypart = self.select_bodypart_x_coordinates_comboBox.currentText()
+        self.y_bodypart = self.select_bodypart_y_coordinates_comboBox.currentText()
 
         # Update bodyparts in MainWindow
         self.main_widget_handle.x_bodypart = self.x_bodypart

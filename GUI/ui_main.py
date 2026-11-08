@@ -176,7 +176,7 @@ class MainWidget(QMainWindow):
         vertical_splitter.setSizes([240, 620])
 
         # Main layout
-        main_layout = QGridLayout(self)
+        main_layout = QGridLayout()
         main_layout.addWidget(vertical_splitter)
 
         # Main Window widget
@@ -221,7 +221,9 @@ class MainWidget(QMainWindow):
 
     def action_select_paths(self):
         # Open path selection dialog
-        selected_paths = QFileDialog.getOpenFileNames(self, 'Select files', os.getcwd())
+        selected_paths = QFileDialog.getOpenFileNames(
+            self, 'Select files', os.getcwd(), 'DLC data (*.csv *.xlsx)'
+        )
 
         # Make path lists
         self.selected_paths = list(selected_paths[0])
@@ -242,7 +244,8 @@ class MainWidget(QMainWindow):
         for root, dirs, files in os.walk(selected_dir):
             for file in files:
                 full_path = os.path.join(root, file)
-                self.selected_paths.append(full_path)
+                if os.path.splitext(file)[1].lower() in {'.csv', '.xlsx'}:
+                    self.selected_paths.append(full_path)
 
         # Display selected directory in table widget
         self.selected_path_table.setRowCount(len(self.selected_paths))
